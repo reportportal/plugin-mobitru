@@ -1,43 +1,37 @@
 plugins {
     id "io.spring.dependency-management" version "1.1.7"
     id 'java'
-    id 'jacoco'
     id 'com.gradleup.shadow' version '9.3.1'
-    id "com.github.node-gradle.node" version "7.1.0"
-    id("io.freefair.lombok") version "9.1.0"
 }
 
-
-node {
-    version = '20.11.0'
-    npmVersion = '10.2.4'
-    download = true
-    workDir = layout.buildDirectory.dir('ui').get().asFile
-    npmWorkDir = file("${project.rootDir}/ui")
-    nodeProjectDir = file("${project.rootDir}/ui")
-
+project.ext {
+    publishRepo = "https://maven.pkg.github.com/reportportal/plugin-mobitru"
+    dependencyRepos = ["plugin-api", "commons-bom"]
+    releaseMode = project.hasProperty("releaseMode")
+    pluginID = "mobitru"
+    pluginsDir = layout.buildDirectory.dir("plugins").get().asFile.path
 }
 
-npm_run_build {
-    inputs.files fileTree("ui/src")
-    inputs.file 'ui/package.json'
-    inputs.file 'ui/package-lock.json'
-    outputs.dir 'ui/build'
-}
+def scriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-scripts/' +
+        (releaseMode ? getProperty('scripts.version') : 'develop')
 
-apply from: 'project-properties.gradle'
+apply from: scriptsUrl + '/release-fat.gradle'
+apply from: scriptsUrl + '/signing.gradle'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
 
 repositories {
     mavenCentral()
-
+    maven { url = "https://build.shibboleth.net/nexus/content/repositories/releases/" }
     if (!releaseMode) {
-        maven {
-            url = 'https://jitpack.io'
-        }
+        maven { url = 'https://jitpack.io' }
     }
-    maven { url  "https://build.shibboleth.net/nexus/content/repositories/releases/" }
-
 }
+
+ext['spring-boot.version'] = "${springBootVersion}"
 
 dependencies {
     if (releaseMode) {
@@ -51,89 +45,44 @@ dependencies {
             exclude group: 'org.springframework.modulith', module: 'spring-modulith-apt'
         }
     }
+    implementation "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
+    testImplementation 'org.junit.jupiter:junit-jupiter-api'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // additional dependencies should be included in shadowJar section as well
-}
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
-    }
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 }
 
 test {
     useJUnitPlatform()
-    maxParallelForks = 1
-    testLogging {
-        events = ['failed']
-        exceptionFormat = 'short'
-    }
-    reports {
-        junitXml.required.set(true)
-    }
 }
 
-build.dependsOn jacocoTestReport
+assemble.dependsOn shadowJar
 
-artifacts {
-    archives shadowJar
-}
-
-sourceSets {
-    main {
-        resources
-                {
-                    exclude '**'
-                }
-    }
-}
+generatePomFileForShadowPublication { pom.packaging = "jar" }
 
 jar {
-    from("src/main/resources") {
-        into("/resources")
-    }
-    from("ui/build") {
-        into("/resources")
-    }
     manifest {
         attributes(
                 "Class-Path": configurations.compileClasspath.collect { it.getName() }.join(' '),
-                "Plugin-Class": "${pluginClass}",
                 "Plugin-Id": "${pluginId}",
-                "Plugin-Name": "${pluginName}",
                 "Plugin-Version": "${project.version}",
-                "Plugin-Provider": "${provider}",
-                "Plugin-License": "${license}",
-                "Plugin-Description": "${project.description}",
-                "Plugin-Documentation": "${documentation}",
-                "Plugin-Metadata-isIntegrationsAllowed": "${isIntegrationsAllowed}",
-                "Plugin-Metadata-embedded": "${isEmbedded}",
-                "Plugin-Metadata-isMultiple": "${isMultiple}",
-                "Plugin-Binary-Data-main": "${mainBinaryData}",
-                "Plugin-Binary-Data-metadata": "${metadataBinaryData}",
-                "Plugin-Metadata-yourAdditionalMetadata": "${yourAdditionalMetadata}",
-                "Plugin-Property-yourAdditionalProperty": "${yourAdditionalProperty}",
+                "Plugin-Provider": "reportportal.io",
+                "Plugin-Class": "com.epam.reportportal.mobitru.MobitruPlugin",
         )
     }
 }
 
 shadowJar {
-    from("src/main/resources") {
-        into("/resources")
-    }
-    from("ui/build") {
-        into("/resources")
-    }
-    configurations = [project.configurations.compileClasspath]
     zip64 = true
-    minimize()
     dependencies {
-        // example:
-        // include(dependency("org.apache.tomcat:tomcat-annotations-api:.*"))
     }
 }
 
-tasks.register('plugin', Jar) { task ->
+task plugin(type: Jar) {
     getArchiveBaseName().set("plugin-${pluginId}")
     into('classes') {
         with jar
@@ -141,18 +90,18 @@ tasks.register('plugin', Jar) { task ->
     into('lib') {
         from configurations.compileClasspath
     }
-    getArchiveExtension().set('zip')
+    archiveExtension.set('zip')
 }
 
-tasks.register('assemblePlugin', Copy) {
+task assemblePlugin(type: Copy) {
     from plugin
     into pluginsDir
 }
 
-tasks.register('assemblePlugins', Copy) {
-    dependsOn subprojects*.tasks*.assemblePlugin
+task assemblePlugins(type: Copy) {
+    dependsOn subprojects.assemblePlugin
 }
 
-compileJava.dependsOn npm_run_build
-
-javadoc.enabled = false
+wrapper {
+    gradleVersion = '9.3.1'
+}
