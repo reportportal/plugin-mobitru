@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.extension.template.utils;
+package com.epam.reportportal.extension.mobitru.utils;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

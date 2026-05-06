@@ -7,9 +7,9 @@ export const PLUGIN_NAME = 'template';
  * Example for **organization / instance** UI: **`POST`** on **`URLS.pluginsCommandsCommon`**
  * Pass **`utils`** from host extension props.
  */
-export type UseCommandExecutorProps = {
+export interface UseCommandExecutorProps {
   utils: Required<Pick<UtilsInterface, 'fetch' | 'URLS'>>;
-};
+}
 
 export const useCommandExecutor =
   ({ utils: { fetch, URLS } }: UseCommandExecutorProps) =>

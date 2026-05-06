@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.extension.template.event.handler;
-
+package com.epam.reportportal.extension.mobitru.event.handler;
 
 import com.epam.reportportal.base.core.events.domain.PluginDeletedEvent;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;

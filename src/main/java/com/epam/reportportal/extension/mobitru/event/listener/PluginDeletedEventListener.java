@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.extension.template.event.listener;
+package com.epam.reportportal.extension.mobitru.event.listener;
 
 import com.epam.reportportal.base.core.events.domain.PluginDeletedEvent;
-import com.epam.reportportal.extension.template.event.handler.PluginDeletedEventHandler;
+import com.epam.reportportal.extension.mobitru.event.handler.PluginDeletedEventHandler;
 import java.util.Objects;
 import org.springframework.context.ApplicationListener;
 

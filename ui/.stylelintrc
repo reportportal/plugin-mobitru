@@ -1,0 +1,13 @@
+{
+  "extends": "stylelint-config-recommended-scss",
+  "plugins": ["stylelint-scss"],
+  "rules": {
+    "no-descending-specificity": [true, {"severity": "warning"}],
+    "selector-pseudo-class-no-unknown": [true, {"ignorePseudoClasses": ["global"]}],
+    "block-no-empty": [true, {"severity": "warning"}],
+    "selector-max-attribute": null,
+    "color-named": "never",
+    "color-no-hex": true,
+    "scss/operator-no-newline-after": null
+  }
+}

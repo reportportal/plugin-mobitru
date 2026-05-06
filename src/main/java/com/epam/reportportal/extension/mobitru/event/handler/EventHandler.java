@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.extension.template;
-
-import org.pf4j.Plugin;
-import org.pf4j.PluginWrapper;
+package com.epam.reportportal.extension.mobitru.event.handler;
 
 /**
  * @author Andrei Piankouski
  */
-public class TemplatePlugin extends Plugin {
+public interface EventHandler<T> {
 
-  /**
-   * Constructor to be used by plugin manager for plugin instantiation. Your plugins have to provide constructor with
-   * this exact signature to be successfully loaded by manager.
-   *
-   * @param wrapper - A wrapper over plugin instance.
-   */
-  public TemplatePlugin(PluginWrapper wrapper) {
-    super(wrapper);
-  }
+  void handle(T event);
 }

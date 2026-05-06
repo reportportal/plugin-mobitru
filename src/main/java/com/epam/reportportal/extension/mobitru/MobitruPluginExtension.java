@@ -14,26 +14,19 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.extension.template;
+package com.epam.reportportal.extension.mobitru;
 
 import static com.epam.reportportal.extension.util.PluginManifestUtils.readPluginIdFromManifest;
 
-
 import com.epam.reportportal.base.core.events.domain.PluginDeletedEvent;
-import com.epam.reportportal.base.core.events.domain.PluginUploadedEvent;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
-import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.extension.CommonPluginCommand;
 import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
-import com.epam.reportportal.extension.template.command.TemplateCommand;
-import com.epam.reportportal.extension.template.event.handler.PluginDeletedEventHandler;
-import com.epam.reportportal.extension.template.event.handler.PluginLoadedEventHandler;
-import com.epam.reportportal.extension.template.event.listener.PluginDeletedEventListener;
-import com.epam.reportportal.extension.template.event.listener.PluginLoadedEventListener;
-import com.epam.reportportal.extension.template.utils.MemoizingSupplier;
+import com.epam.reportportal.extension.mobitru.event.handler.PluginDeletedEventHandler;
+import com.epam.reportportal.extension.mobitru.event.listener.PluginDeletedEventListener;
+import com.epam.reportportal.extension.mobitru.utils.MemoizingSupplier;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,25 +48,14 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Service;
 
 /**
- * Use this extension if you need to handle events and create a default integration.
- *
- * <p>This extension registers an application listener to handle {@code PluginUploadedEvent}
- * for the plugin and executes optional SQL migration scripts located in `resources/schema` on startup.
- *
- * <p>If your plugin does not require explicit lifecycle control (for example, you don't need to
- * remove registered listeners on shutdown or perform other cleanup), you may remove the
- * {@link org.springframework.beans.factory.DisposableBean} interface from the class declaration. Keeping
- * {@code DisposableBean} allows the extension to clean up registered resources (listeners, migrations, etc.) when the
- * Spring bean is destroyed.
- *
  * @author Andrei Piankouski
  */
 @Extension
 @Service
 @Slf4j
-public class TemplatePluginExtension implements ReportPortalExtensionPoint, DisposableBean {
+public class MobitruPluginExtension implements ReportPortalExtensionPoint, DisposableBean {
 
-  private static final String DEFAULT_PLUGIN_ID = "template";
+  private static final String DEFAULT_PLUGIN_ID = "mobitru";
   public final String pluginId;
 
   private final Supplier<Map<String, PluginCommand<?>>> pluginCommandMapping =
@@ -81,7 +63,7 @@ public class TemplatePluginExtension implements ReportPortalExtensionPoint, Disp
 
   private final Supplier<Map<String, CommonPluginCommand<?>>> commonPluginCommandMapping =
       new MemoizingSupplier<>(this::getCommonCommands);
-  private final Supplier<ApplicationListener<PluginUploadedEvent>> pluginLoadedListener;
+
   private final Supplier<ApplicationListener<PluginDeletedEvent>> pluginDeletedListener;
 
   @Autowired
@@ -91,46 +73,22 @@ public class TemplatePluginExtension implements ReportPortalExtensionPoint, Disp
   @Autowired
   private IntegrationRepository integrationRepository;
   @Autowired
-  private OrganizationRepositoryCustom organizationRepository;
-  @Autowired
-  private OrganizationUserRepository organizationUserRepository;
-  @Autowired
   private DataSource dataSource;
 
-
-  /**
-   * Creates a new instance of the extension.
-   *
-   * <p>Reads the plugin id from the plugin manifest (falling back to {@code DEFAULT_PLUGIN_ID})
-   * and initializes a memorizing supplier for the {@link PluginLoadedEventListener}. The actual repositories are
-   * injected by Spring and will be used when the supplier is first invoked. Remove the PluginLoadedEventListener
-   * initialization if the plugin does not require processing plugin events
-   */
-  public TemplatePluginExtension() {
+  public MobitruPluginExtension() {
     this.pluginId = readPluginIdFromManifest(this.getClass(), DEFAULT_PLUGIN_ID);
-    pluginLoadedListener = new MemoizingSupplier<>(() -> new PluginLoadedEventListener(
-        pluginId, new PluginLoadedEventHandler(integrationTypeRepository, integrationRepository)
-    ));
     pluginDeletedListener = new MemoizingSupplier<>(() -> new PluginDeletedEventListener(
         pluginId,
         new PluginDeletedEventHandler(integrationTypeRepository, integrationRepository)
     ));
   }
 
-  /**
-   * Initializes the plugin by registering listeners and executing migration scripts.
-   */
   @PostConstruct
   public void initializePlugin() throws IOException {
     initListeners();
     executeMigrationScripts();
   }
 
-
-  /**
-   * Execute SQL migration scripts from `schema` on startup. Remove this call if the plugin does not require database
-   * schema initialization.
-   */
   private void executeMigrationScripts() throws IOException {
     try {
       PathMatchingResourcePatternResolver resolver =
@@ -147,26 +105,14 @@ public class TemplatePluginExtension implements ReportPortalExtensionPoint, Disp
     }
   }
 
-  /**
-   * Initialize and register plugin-related application listeners.
-   * <p>
-   * Registers a listener that handles {@code PluginUploadedEvent} for this plugin using the application context's
-   * {@link ApplicationEventMulticaster}.
-   */
   private void initListeners() {
     ApplicationEventMulticaster applicationEventMulticaster = applicationContext.getBean(
         AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
         ApplicationEventMulticaster.class
     );
-    applicationEventMulticaster.addApplicationListener(pluginLoadedListener.get());
     applicationEventMulticaster.addApplicationListener(pluginDeletedListener.get());
   }
 
-
-  /**
-   * Invoked when the Spring bean is being destroyed. Removes registered application listeners to avoid memory leaks and
-   * cleanup plugin-related resources.
-   */
   @Override
   public void destroy() {
     removeListeners();
@@ -177,15 +123,9 @@ public class TemplatePluginExtension implements ReportPortalExtensionPoint, Disp
         AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
         ApplicationEventMulticaster.class
     );
-    applicationEventMulticaster.removeApplicationListener(pluginLoadedListener.get());
     applicationEventMulticaster.removeApplicationListener(pluginDeletedListener.get());
   }
 
-  /**
-   * Retrieves a map of plugin parameters.
-   *
-   * @return A map containing allowed commands and common commands.
-   */
   @Override
   public Map<String, ?> getPluginParams() {
     Map<String, Object> params = new HashMap<>();
@@ -194,39 +134,21 @@ public class TemplatePluginExtension implements ReportPortalExtensionPoint, Disp
     return params;
   }
 
-  /**
-   * Retrieves a common plugin command by its name.
-   *
-   * @param commandName The name of the command.
-   * @return The corresponding CommonPluginCommand, or null if not found.
-   */
   @Override
   public CommonPluginCommand<?> getCommonCommand(String commandName) {
     return commonPluginCommandMapping.get().get(commandName);
   }
 
-  /**
-   * Retrieves an integration command by its name.
-   *
-   * @param commandName The name of the command.
-   * @return The corresponding PluginCommand, or null if not found.
-   */
   @Override
   public PluginCommand<?> getIntegrationCommand(String commandName) {
     return pluginCommandMapping.get().get(commandName);
   }
 
-  /**
-   * Retrieves a map of plugin commands.
-   */
   private Map<String, PluginCommand<?>> getCommands() {
     return new HashMap<>();
   }
 
   private Map<String, CommonPluginCommand<?>> getCommonCommands() {
-    HashMap<String, CommonPluginCommand<?>> pluginCommands = new HashMap<>();
-    TemplateCommand templatePlugin = new TemplateCommand();
-    pluginCommands.put(templatePlugin.getName(), templatePlugin);
-    return pluginCommands;
+    return new HashMap<>();
   }
 }

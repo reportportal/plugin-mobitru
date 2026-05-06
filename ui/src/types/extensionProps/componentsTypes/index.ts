@@ -1,6 +1,6 @@
 import { IntegrationParameters, OnSubmit } from 'extensionProps/common';
-import { FC } from 'react';
-import { BaseFieldProps } from 'redux-form';
+import { ComponentType, FC } from 'react';
+import type { BaseFieldProps } from 'redux-form';
 
 interface FieldProviderInterface extends BaseFieldProps {
   children: React.ReactNode;
@@ -33,6 +33,7 @@ interface FieldErrorHintInterface {
 interface FieldTextInterface {
   maxLength?: number;
   defaultWidth?: boolean;
+  disabled?: boolean;
 }
 
 interface BtsAuthFieldsInfo {
@@ -68,14 +69,16 @@ interface IntegrationSettings {
   };
   goToPreviousPage: () => void;
   onUpdate: OnSubmit;
-  editAuthConfig: {
-    content: JSX.Element;
+  editAuthConfig?: {
+    content?: JSX.Element;
     onClick: (testConnection: () => void) => void;
   };
   isGlobal: boolean;
-  formFieldsComponent: BtsPropertiesForIssueForm;
-  formKey: string;
-  isEmptyConfiguration: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  formFieldsComponent: ComponentType<any>;
+  formKey?: string;
+  isEmptyConfiguration?: boolean;
+  preventTestConnection?: boolean;
 }
 
 export interface IntegrationFormFieldsComponentsInterface {
@@ -85,10 +88,17 @@ export interface IntegrationFormFieldsComponentsInterface {
   FieldTextFlex: FC;
 }
 
+export type FieldElementComponent = FC<FieldElementInterface>;
+export type FieldErrorHintComponent = FC<FieldErrorHintInterface>;
+export type FieldTextComponent = FC<FieldTextInterface>;
+
 type BtsPropertiesForIssueForm = FC<FieldProviderInterface>;
 
 export interface IntegrationSettingsComponentsInterface {
   IntegrationSettings: FC<IntegrationSettings>;
   BtsAuthFieldsInfo: FC<BtsAuthFieldsInfo>;
   BtsPropertiesForIssueForm: BtsPropertiesForIssueForm;
+  FieldElement: FC<FieldElementInterface>;
+  FieldErrorHint: FC<FieldErrorHintInterface>;
+  FieldText: FC<FieldTextInterface>;
 }

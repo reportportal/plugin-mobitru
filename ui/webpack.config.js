@@ -59,6 +59,11 @@ const config = {
       types: path.resolve(__dirname, 'src/types'),
       utils: path.resolve(__dirname, 'src/utils'),
       analyticsEvents: path.resolve(__dirname, 'src/analyticsEvents'),
+      'extensionProps/components': path.resolve(__dirname, 'src/types/extensionProps/componentsTypes'),
+      'extensionProps/common': path.resolve(__dirname, 'src/types/extensionProps/common'),
+      'extensionProps/utils': path.resolve(__dirname, 'src/types/extensionProps/utilsTypes'),
+      'extensionProps/actions': path.resolve(__dirname, 'src/types/extensionProps/actionsTypes'),
+      'extensionProps/validators': path.resolve(__dirname, 'src/types/extensionProps/validatorTypes'),
     },
   },
   externals: ['redux'],
@@ -66,17 +71,23 @@ const config = {
     new ForkTsCheckerWebpackPlugin(),
     new ESLintWebpackPlugin({
       context: './src',
-      extensions: ['.scss', '.css', '.ts', '.tsx'],
+      extensions: ['.ts', '.tsx'],
+      configType: 'flat',
       threads: true,
+      cache: false,
     }),
     new ModuleFederationPlugin({
-      name: 'plugin_name',
+      name: 'mobitru_plugin',
       filename: `remoteEntity.js`,
       shared: {
         react: {
           import: 'react',
           shareKey: 'react',
           shareScope: 'default',
+          singleton: true,
+          requiredVersion: pjson.dependencies['react'],
+        },
+        'react/jsx-runtime': {
           singleton: true,
           requiredVersion: pjson.dependencies['react'],
         },
@@ -114,14 +125,8 @@ const config = {
         },
       },
       exposes: {
-        './instanceAdminPage': './src/components/instanceAdminPage/instanceAdminPage.tsx',
-        './instanceAdminSidebarNav':
-          './src/components/instanceAdminSidebarNav/instanceAdminSidebarNav.tsx',
-        './organizationSettingsTab':
-          './src/components/organizationSettingsTab/organizationSettingsTab.tsx',
-        './organizationSidebarNav':
-          './src/components/organizationSidebarNav/organizationSidebarNav.tsx',
-        './projectSettingsTab': './src/components/projectSettingsTab/projectSettingsTab.tsx',
+        './mobitruFormFields': './src/components/mobitruFormFields/index.ts',
+        './mobitruSettings': './src/components/mobitruSettings/index.ts',
       },
     }),
     new CopyPlugin({

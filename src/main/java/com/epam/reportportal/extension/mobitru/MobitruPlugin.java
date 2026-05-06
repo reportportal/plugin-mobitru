@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.extension.template.command;
+package com.epam.reportportal.extension.mobitru;
 
-import com.epam.reportportal.api.model.PluginCommandRQ;
-import com.epam.reportportal.extension.AdminContextCommand;
+import org.pf4j.Plugin;
+import org.pf4j.PluginWrapper;
 
-/**
- * @author Andrei Piankouski
- */
-public class TemplateCommand extends AdminContextCommand<String> {
+public class MobitruPlugin extends Plugin {
 
-  @Override
-  public String getName() {
-    return "TemplateCommand";
-  }
-
-  @Override
-  protected String invokeCommand(PluginCommandRQ pluginCommandRq) {
-    return "success";
+  /**
+   * Constructor to be used by plugin manager for plugin instantiation. Your plugins have to provide constructor with
+   * this exact signature to be successfully loaded by manager.
+   *
+   * @param wrapper - A wrapper over plugin instance.
+   */
+  public MobitruPlugin(PluginWrapper wrapper) {
+    super(wrapper);
   }
 }
