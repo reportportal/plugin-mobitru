@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.extension.template;
+package com.epam.reportportal.mobitru;
 
 import org.pf4j.Plugin;
 import org.pf4j.PluginWrapper;
 
 /**
- * @author Andrei Piankouski
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public class TemplatePlugin extends Plugin {
+public class MobitruPlugin extends Plugin {
 
   /**
    * Constructor to be used by plugin manager for plugin instantiation. Your plugins have to provide constructor with
    * this exact signature to be successfully loaded by manager.
    *
-   * @param wrapper - A wrapper over plugin instance.
+   * @param wrapper PF4J plugin wrapper
    */
-  public TemplatePlugin(PluginWrapper wrapper) {
+  public MobitruPlugin(PluginWrapper wrapper) {
     super(wrapper);
   }
 }

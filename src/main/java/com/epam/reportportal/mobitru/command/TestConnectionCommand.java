@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 EPAM Systems
+ * Copyright 2019 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.extension.template.command;
+package com.epam.reportportal.mobitru.command;
 
-import com.epam.reportportal.api.model.PluginCommandRQ;
-import com.epam.reportportal.extension.AdminContextCommand;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
+import java.util.Map;
 
 /**
- * @author Andrei Piankouski
+ * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public class TemplateCommand extends AdminContextCommand<String> {
+public class TestConnectionCommand implements
+    com.epam.reportportal.extension.PluginCommand<Boolean> {
 
   @Override
-  public String getName() {
-    return "TemplateCommand";
+  public Boolean executeCommand(Integration integration, Map params) {
+    throw new UnsupportedOperationException("Not implemented");
   }
 
   @Override
-  protected String invokeCommand(PluginCommandRQ pluginCommandRq) {
-    return "success";
+  public String getName() {
+    return "testConnection";
   }
 }

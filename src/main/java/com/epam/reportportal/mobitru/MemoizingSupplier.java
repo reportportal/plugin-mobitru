@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 EPAM Systems
+ * Copyright 2021 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.extension.template.utils;
+package com.epam.reportportal.mobitru;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -22,13 +22,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 /**
- * @author Andrei Piankouski
+ * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
 public class MemoizingSupplier<T> implements Supplier<T> {
 
   private final Supplier<T> delegate;
 
-  private final AtomicBoolean initialized = new AtomicBoolean(false);
+  private AtomicBoolean initialized = new AtomicBoolean(false);
 
   private T value;
 
