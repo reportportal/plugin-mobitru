@@ -7,12 +7,14 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const pluginName = pjson.name;
 
 const config = {
+  devtool: false,
   entry: path.resolve(__dirname, './src'),
   output: {
     path: path.resolve(__dirname, 'build/public'),
     filename: '[name].app.[contenthash:8].js',
     publicPath: 'auto',
     clean: true,
+    scriptType: 'text/javascript',
   },
   module: {
     rules: [
