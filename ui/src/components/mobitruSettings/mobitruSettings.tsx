@@ -49,7 +49,6 @@ export const MobitruSettings = ({
   const { IntegrationSettings, BtsAuthFieldsInfo, FieldElement, FieldErrorHint, FieldText } =
     components;
   const { requiredField } = validators;
-  const { SECRET_FIELDS_KEY } = constants;
 
   const params = data.integrationParameters as unknown as MobitruIntegrationParameters;
 
@@ -98,10 +97,9 @@ export const MobitruSettings = ({
         FieldErrorHint,
         FieldText,
         requiredField,
-        SECRET_FIELDS_KEY,
         validateHttpsUrl,
       }),
-    [FieldElement, FieldErrorHint, FieldText, requiredField, SECRET_FIELDS_KEY]
+    [FieldElement, FieldErrorHint, FieldText, requiredField]
   );
 
   return (

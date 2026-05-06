@@ -36,10 +36,8 @@ export const MobitruFormFields = ({
   initialize,
   disabled,
   initialData,
-  updateMetaData,
   validators,
   components,
-  constants,
 }: Props) => {
   const { FieldElement, FieldErrorHint, FieldText } = components;
   const { requiredField } = validators;
@@ -48,7 +46,6 @@ export const MobitruFormFields = ({
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     initialize(initialData);
-    updateMetaData({ [constants.SECRET_FIELDS_KEY]: ['apiKey'] });
   }, []);
   /* eslint-enable react-hooks/exhaustive-deps */
 

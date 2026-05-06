@@ -26,7 +26,6 @@ interface FieldDeps {
   FieldErrorHint: FieldErrorHintComponent;
   FieldText: FieldTextComponent;
   requiredField: (value: string) => string | undefined;
-  SECRET_FIELDS_KEY: string;
   validateHttpsUrl: (value: string) => string | undefined;
 }
 
@@ -42,7 +41,6 @@ export const createMobitruFormFields = ({
   FieldErrorHint,
   FieldText,
   requiredField,
-  SECRET_FIELDS_KEY,
   validateHttpsUrl,
 }: FieldDeps): ComponentType<FormFieldsProps> => {
   const MobitruFormFields = ({
@@ -55,7 +53,6 @@ export const createMobitruFormFields = ({
 
     useEffect(() => {
       onMountRef.current.initialize(onMountRef.current.initialData);
-      onMountRef.current.updateMetaData({ [SECRET_FIELDS_KEY]: ['apiKey'] });
     }, []);
 
     return (
