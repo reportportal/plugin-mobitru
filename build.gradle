@@ -65,6 +65,9 @@ assemble.dependsOn shadowJar
 generatePomFileForShadowPublication { pom.packaging = "jar" }
 
 jar {
+    from('ui/build/public') {
+        into('/resources')
+    }
     manifest {
         attributes(
                 "Class-Path": configurations.compileClasspath.collect { it.getName() }.join(' '),
@@ -72,6 +75,10 @@ jar {
                 "Plugin-Version": "${project.version}",
                 "Plugin-Provider": "reportportal.io",
                 "Plugin-Class": "com.epam.reportportal.mobitru.MobitruPlugin",
+                "Plugin-Name": "${pluginName}",
+                "Plugin-Binary-Data-main": "${mainBinaryData}",
+                "Plugin-Binary-Data-metadata": "${metadataBinaryData}",
+                "Plugin-Metadata-isIntegrationsAllowed": "${isIntegrationsAllowed}",
         )
     }
 }
