@@ -55,7 +55,7 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
 
   @Override
   public CommonPluginCommand getCommonCommand(String commandName) {
-    throw new UnsupportedOperationException("Plugin commands are not supported");
+    return null;
   }
 
   @Override
