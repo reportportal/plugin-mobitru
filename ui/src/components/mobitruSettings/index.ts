@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-declare module '*.scss' {
-  const content: { [className: string]: string };
-  export = content;
-}
+import { MobitruSettings } from './mobitruSettings';
 
-declare module '*.svg' {
-  const content: string;
-  export default content;
-}
+export { MobitruSettings };
+export default MobitruSettings;

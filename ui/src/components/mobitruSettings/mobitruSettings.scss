@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright 2026 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,12 +14,26 @@
  * limitations under the License.
  */
 
-declare module '*.scss' {
-  const content: { [className: string]: string };
-  export = content;
+.mobitru-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-declare module '*.svg' {
-  const content: string;
-  export default content;
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  color: var(--rp-ui-color-text-secondary);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.value {
+  color: var(--rp-ui-color-text);
+  font-size: 13px;
+  line-height: 1.4;
 }

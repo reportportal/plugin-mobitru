@@ -2,6 +2,7 @@ plugins {
     id "io.spring.dependency-management" version "1.1.7"
     id 'java'
     id 'com.gradleup.shadow' version '9.3.1'
+    id "com.github.node-gradle.node" version "7.1.0"
 }
 
 project.ext {
@@ -36,10 +37,14 @@ ext['spring-boot.version'] = "${springBootVersion}"
 dependencies {
     if (releaseMode) {
         implementation 'com.epam.reportportal:service-api'
-        annotationProcessor 'com.epam.reportportal:service-api'
+        annotationProcessor('com.epam.reportportal:service-api') {
+            exclude group: 'org.springframework.modulith', module: 'spring-modulith-apt'
+        }
     } else {
         implementation 'com.github.reportportal:service-api:e6a3e1a7e0'
-        annotationProcessor 'com.github.reportportal:service-api:e6a3e1a7e0'
+        annotationProcessor('com.github.reportportal:service-api:e6a3e1a7e0') {
+            exclude group: 'org.springframework.modulith', module: 'spring-modulith-apt'
+        }
     }
     implementation "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
@@ -56,11 +61,33 @@ test {
     useJUnitPlatform()
 }
 
+node {
+    version = '20.19.5'
+    npmVersion = '11.6.4'
+    download = true
+    nodeProjectDir = file("${project.rootDir}/ui")
+}
+
+npmInstall {
+    args = ['--legacy-peer-deps']
+}
+
+npm_run_build {
+    inputs.files fileTree('ui/src')
+    inputs.file 'ui/package.json'
+    outputs.dir 'ui/build'
+}
+
+jar.dependsOn npm_run_build
+
 assemble.dependsOn shadowJar
 
 generatePomFileForShadowPublication { pom.packaging = "jar" }
 
 jar {
+    from('ui/build') {
+        into('/resources')
+    }
     manifest {
         attributes(
                 "Class-Path": configurations.compileClasspath.collect { it.getName() }.join(' '),
@@ -68,6 +95,10 @@ jar {
                 "Plugin-Version": "${project.version}",
                 "Plugin-Provider": "reportportal.io",
                 "Plugin-Class": "com.epam.reportportal.mobitru.MobitruPlugin",
+                "Plugin-Name": "${pluginName}",
+                "Plugin-Binary-Data-main": "${mainBinaryData}",
+                "Plugin-Binary-Data-metadata": "${metadataBinaryData}",
+                "Plugin-Metadata-isIntegrationsAllowed": "${isIntegrationsAllowed}",
         )
     }
 }

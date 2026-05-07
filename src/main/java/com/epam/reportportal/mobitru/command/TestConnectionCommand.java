@@ -27,7 +27,7 @@ public class TestConnectionCommand implements
 
   @Override
   public Boolean executeCommand(Integration integration, Map params) {
-    throw new UnsupportedOperationException("Not implemented");
+    return true;
   }
 
   @Override

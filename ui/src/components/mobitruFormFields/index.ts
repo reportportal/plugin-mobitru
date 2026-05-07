@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-declare module '*.scss' {
-  const content: { [className: string]: string };
-  export = content;
-}
+import { MobitruFormFields } from './mobitruFormFields';
 
-declare module '*.svg' {
-  const content: string;
-  export default content;
-}
+export { MobitruFormFields };
+export default MobitruFormFields;
