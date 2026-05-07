@@ -14,8 +14,28 @@
  * limitations under the License.
  */
 
-import { IntegrationFormFieldsInterface } from 'extensionProps/common';
+import {
+  FieldElementComponent,
+  FieldErrorHintComponent,
+  FieldTextComponent,
+} from 'extensionProps/components';
 import { useEffect } from 'react';
+
+type Validator = (value: string) => string | undefined;
+
+interface MobitruFormFieldsProps {
+  initialize: (data: object) => void;
+  disabled: boolean;
+  initialData: object;
+  components: {
+    FieldElement: FieldElementComponent;
+    FieldErrorHint: FieldErrorHintComponent;
+    FieldText: FieldTextComponent;
+  };
+  validators: {
+    requiredField: Validator;
+  };
+}
 
 const validateHttpsUrl = (value: string) => {
   if (!value) return undefined;
@@ -30,7 +50,7 @@ const validateHttpsUrl = (value: string) => {
   return undefined;
 };
 
-type Props = IntegrationFormFieldsInterface;
+type Props = MobitruFormFieldsProps;
 
 export const MobitruFormFields = ({
   initialize,

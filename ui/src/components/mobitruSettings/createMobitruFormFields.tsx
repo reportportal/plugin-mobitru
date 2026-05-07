@@ -19,14 +19,15 @@ import {
   FieldErrorHintComponent,
   FieldTextComponent,
 } from 'extensionProps/components';
-import { ComponentType, useEffect, useRef } from 'react';
+import { ComponentType } from 'react';
+
+import { MobitruFormFields } from '../mobitruFormFields';
 
 interface FieldDeps {
   FieldElement: FieldElementComponent;
   FieldErrorHint: FieldErrorHintComponent;
   FieldText: FieldTextComponent;
   requiredField: (value: string) => string | undefined;
-  validateHttpsUrl: (value: string) => string | undefined;
 }
 
 interface FormFieldsProps {
@@ -41,52 +42,16 @@ export const createMobitruFormFields = ({
   FieldErrorHint,
   FieldText,
   requiredField,
-  validateHttpsUrl,
 }: FieldDeps): ComponentType<FormFieldsProps> => {
-  const MobitruFormFields = ({
-    initialize,
-    disabled,
-    initialData,
-    updateMetaData,
-  }: FormFieldsProps) => {
-    const onMountRef = useRef({ initialize, initialData, updateMetaData });
+  const MobitruFormFieldsWrapper = (props: FormFieldsProps) => (
+    <MobitruFormFields
+      {...props}
+      components={{ FieldElement, FieldErrorHint, FieldText }}
+      validators={{ requiredField }}
+    />
+  );
 
-    useEffect(() => {
-      onMountRef.current.initialize(onMountRef.current.initialData);
-    }, []);
+  MobitruFormFieldsWrapper.displayName = 'MobitruFormFields';
 
-    return (
-      <div>
-        <FieldElement
-          name="url"
-          label="Mobitru URL"
-          isRequired
-          validate={[requiredField, validateHttpsUrl]}
-        >
-          <FieldErrorHint>
-            <FieldText disabled={disabled} defaultWidth={false} />
-          </FieldErrorHint>
-        </FieldElement>
-        <FieldElement name="apiKey" label="API key" isRequired validate={[requiredField]}>
-          <FieldErrorHint>
-            <FieldText disabled={disabled} defaultWidth={false} />
-          </FieldErrorHint>
-        </FieldElement>
-        <FieldElement
-          name="billingUnit"
-          label="Mobitru Billing unit (slug)"
-          isRequired
-          validate={[requiredField]}
-        >
-          <FieldErrorHint>
-            <FieldText disabled={disabled} defaultWidth={false} />
-          </FieldErrorHint>
-        </FieldElement>
-      </div>
-    );
-  };
-
-  MobitruFormFields.displayName = 'MobitruFormFields';
-
-  return MobitruFormFields;
+  return MobitruFormFieldsWrapper;
 };

@@ -19,19 +19,6 @@ import { useMemo } from 'react';
 
 import { createMobitruFormFields } from './createMobitruFormFields';
 
-const validateHttpsUrl = (value: string) => {
-  if (!value) return undefined;
-  try {
-    const url = new URL(value);
-    if (url.protocol !== 'https:') {
-      return 'Please provide a valid HTTPS URL';
-    }
-  } catch {
-    return 'Please provide a valid URL';
-  }
-  return undefined;
-};
-
 const API_KEY_MASK = '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022';
 
 type Props = IntegrationSettingsInterface;
@@ -97,7 +84,6 @@ export const MobitruSettings = ({
         FieldErrorHint,
         FieldText,
         requiredField,
-        validateHttpsUrl,
       }),
     [FieldElement, FieldErrorHint, FieldText, requiredField]
   );
