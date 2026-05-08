@@ -98,6 +98,7 @@ jar {
                 "Plugin-Name": "${pluginName}",
                 "Plugin-Binary-Data-main": "${mainBinaryData}",
                 "Plugin-Binary-Data-metadata": "${metadataBinaryData}",
+                "Plugin-Binary-Data-icon": "${iconBinaryData}",
                 "Plugin-Metadata-isIntegrationsAllowed": "${isIntegrationsAllowed}",
         )
     }
