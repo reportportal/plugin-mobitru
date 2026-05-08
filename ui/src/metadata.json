@@ -10,6 +10,19 @@
       "name": "mobitruSettings",
       "type": "uiExtension:integrationSettings",
       "moduleName": "./mobitruSettings"
+    },
+    {
+      "name": "cloudDevicesPage",
+      "type": "uiExtension:projectPage",
+      "title": "Cloud Devices",
+      "moduleName": "./cloudDevicesPage",
+      "slug": "cloudDevices",
+      "icon": {
+        "type": "svg",
+        "content": "<svg width='48' height='40' viewBox='-14 -10 48 40' fill='none' xmlns='http://www.w3.org/2000/svg'>\n<path d='M18.2041 1.01074C19.2128 1.113 20 1.96435 20 3V14C20 15.0357 19.2128 15.887 18.2041 15.9893L18 16H13V18C13.5523 18 14 18.4477 14 19H6C6 18.4477 6.44772 18 7 18V16H2C0.96435 16 0.113005 15.2128 0.0107422 14.2041L0 14L0 3C0 1.89543 0.895431 1 2 1H18L18.2041 1.01074ZM8.5 13C8.22386 13 8 13.2239 8 13.5C8 13.7761 8.22386 14 8.5 14H11.5C11.7761 14 12 13.7761 12 13.5C12 13.2239 11.7761 13 11.5 13H8.5ZM2 12H18V3H2V12Z' fill='#D9D9D9'/>\n</svg>\n"
+      },
+      "menuOrder": 85,
+      "iconName": "cloud_devices"
     }
   ]
 }

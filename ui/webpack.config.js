@@ -129,6 +129,7 @@ const config = {
       exposes: {
         './mobitruFormFields': './src/components/mobitruFormFields/index.ts',
         './mobitruSettings': './src/components/mobitruSettings/index.ts',
+        './cloudDevicesPage': './src/components/cloudDevicesPage/cloudDevicesPage.tsx',
       },
     }),
     new CopyPlugin({
