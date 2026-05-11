@@ -96,7 +96,7 @@ jar {
                 "Plugin-Provider": "reportportal.io",
                 "Plugin-Class": "com.epam.reportportal.mobitru.MobitruPlugin",
                 "Plugin-Name": "${pluginName}",
-                "Plugin-Description": "${description}",
+                "Plugin-Description": "${project.description}",
                 "Plugin-Documentation": "${documentation}",
                 "Plugin-Binary-Data-main": "${mainBinaryData}",
                 "Plugin-Binary-Data-metadata": "${metadataBinaryData}",
