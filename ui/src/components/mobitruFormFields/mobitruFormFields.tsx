@@ -77,12 +77,12 @@ export const MobitruFormFields = ({
         isRequired
         validate={[requiredField, validateHttpsUrl]}
       >
-        <FieldErrorHint>
+        <FieldErrorHint provideHint={false}>
           <FieldText disabled={disabled} defaultWidth={false} />
         </FieldErrorHint>
       </FieldElement>
       <FieldElement name="apiKey" label="API key" isRequired validate={[requiredField]}>
-        <FieldErrorHint>
+        <FieldErrorHint provideHint={false}>
           <FieldText disabled={disabled} defaultWidth={false} />
         </FieldErrorHint>
       </FieldElement>
@@ -92,7 +92,7 @@ export const MobitruFormFields = ({
         isRequired
         validate={[requiredField]}
       >
-        <FieldErrorHint>
+        <FieldErrorHint provideHint={false}>
           <FieldText disabled={disabled} defaultWidth={false} />
         </FieldErrorHint>
       </FieldElement>
