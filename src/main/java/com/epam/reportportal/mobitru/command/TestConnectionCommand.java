@@ -16,18 +16,54 @@
 
 package com.epam.reportportal.mobitru.command;
 
+import static com.epam.reportportal.mobitru.model.Constants.TEST_CONNECTION;
+
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.mobitru.client.RestClientBuilder;
+import com.epam.reportportal.mobitru.model.IntegrationProperties;
+import com.epam.reportportal.mobitru.utils.ValidationUtils;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@Slf4j
 public class TestConnectionCommand implements
     com.epam.reportportal.extension.PluginCommand<Boolean> {
 
+  private final RestClientBuilder restClient;
+
+  public TestConnectionCommand(RestClientBuilder restClient) {
+    this.restClient = restClient;
+  }
+
   @Override
   public Boolean executeCommand(Integration integration, Map params) {
-    return true;
+    ValidationUtils.validateIntegrationParams(integration.getParams());
+    IntegrationProperties sp = new IntegrationProperties(integration.getParams().getParams());
+    RestTemplate restTemplate = restClient.buildRestTemplate(sp);
+
+    try {
+      String assetsUrl = String.format(TEST_CONNECTION, sp.getBillingUnit());
+      ResponseEntity<String> forObject = restTemplate.exchange(assetsUrl, HttpMethod.GET, null,
+          String.class);
+      if (forObject.getStatusCode().is2xxSuccessful()) {
+        return true;
+      } else {
+        throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+            "Connection refused.");
+      }
+    } catch (Exception e) {
+      log.error("Test connection failed", e);
+      throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+          "Connection refused.");
+    }
   }
 
   @Override

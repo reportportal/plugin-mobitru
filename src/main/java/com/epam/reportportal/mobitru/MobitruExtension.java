@@ -19,12 +19,15 @@ package com.epam.reportportal.mobitru;
 import com.epam.reportportal.extension.CommonPluginCommand;
 import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import com.epam.reportportal.mobitru.client.RestClientBuilder;
+import com.epam.reportportal.mobitru.command.GetDevicesCommand;
 import com.epam.reportportal.mobitru.command.TestConnectionCommand;
 import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.pf4j.Extension;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -43,6 +46,15 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
 
   private final Supplier<Map<String, PluginCommand<?>>> pluginCommandMapping = new MemoizingSupplier<>(
       this::getCommands);
+
+  private final Supplier<RestClientBuilder> restClientSupplier;
+
+  @Autowired
+  private BasicTextEncryptor basicEncryptor;
+
+  public MobitruExtension() {
+    restClientSupplier = new MemoizingSupplier<>(() -> new RestClientBuilder(basicEncryptor));
+  }
 
   @Override
   public Map<String, ?> getPluginParams() {
@@ -65,7 +77,8 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
 
   private Map<String, PluginCommand<?>> getCommands() {
     return ImmutableMap.<String, PluginCommand<?>>builder()
-        .put("testConnection", new TestConnectionCommand())
+        .put("testConnection", new TestConnectionCommand(restClientSupplier.get()))
+        .put("getDevices", new GetDevicesCommand(restClientSupplier.get()))
         .build();
   }
 }
