@@ -46,6 +46,10 @@ const config = {
         ],
       },
       {
+        test: /\.png$/,
+        type: 'asset/inline',
+      },
+      {
         test: /\.svg$/,
         loader: 'svg-inline-loader',
       },

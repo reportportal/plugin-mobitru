@@ -20,12 +20,7 @@ import { defineMessages, useIntl } from 'react-intl';
 
 import styles from './cloudDevicesPage.scss';
 import MobitruIcon from './mobitruIcon';
-import {
-  buildDeviceImageUrl,
-  MOCK_ANDROID_DEVICES,
-  MOCK_IOS_DEVICES,
-  type RawDevice,
-} from './mockData';
+import { MOCK_ANDROID_DEVICES, MOCK_IOS_DEVICES, type RawDevice } from './mockData';
 
 const MOBITRU_DEVICES_URL = 'https://app.mobitru.com/#!/devices';
 const MOBITRU_DOCS_URL =
@@ -79,7 +74,7 @@ const mapToDevice = (raw: RawDevice): Device => ({
   id: raw.id,
   name: raw.name,
   version: `${raw.platform} ${raw.version}`,
-  imageUrl: buildDeviceImageUrl(raw.image),
+  imageUrl: raw.image,
 });
 
 const groupRawDevices = (devices: RawDevice[]): DevicesData => ({
