@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-import { createContext, useContext } from 'react';
-import { type ExtensionProps } from 'types/extensionProps';
+import { RemoteDeviceTab } from './remoteDeviceTab';
 
-export const ExtensionPropsContext = createContext<ExtensionProps>(
-  // default props aren't used, real extensionProps are mandatory for ExtensionPropsContext.Provider
-  null as unknown as ExtensionProps
-);
-
-export const useExtensionProps = (): ExtensionProps =>
-  useContext(ExtensionPropsContext) as ExtensionProps;
+export { RemoteDeviceTab };
+export default RemoteDeviceTab;

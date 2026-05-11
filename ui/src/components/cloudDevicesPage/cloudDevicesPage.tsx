@@ -17,9 +17,9 @@
 import { Button, ExternalLinkIcon, SegmentedControl } from '@reportportal/ui-kit';
 import classNames from 'classnames/bind';
 import { MOBITRU_DEVICES_URL, MOBITRU_DOCS_URL, PLATFORMS } from 'constants/cloudDevices';
-import { ExtensionPropsContext } from 'hooks/useExtensionProps';
+import { ExtensionPropsContext, useExtensionProps } from 'hooks/useExtensionProps';
 import { messages } from 'messages/cloudDevices';
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import {
   Device,
@@ -103,7 +103,7 @@ const DeviceGroup = ({ title, devices }: DeviceGroupProps) => {
 
 const CloudDevicesPageInner = () => {
   const { formatMessage } = useIntl();
-  const { components, selectors, constants, lib } = useContext(ExtensionPropsContext);
+  const { components, selectors, constants, lib } = useExtensionProps();
   const reduxSelect = lib?.useSelector as <R>(fn: (state: unknown) => R) => R | undefined;
 
   const [activePlatform, setActivePlatform] = useState<Platform>('ios');

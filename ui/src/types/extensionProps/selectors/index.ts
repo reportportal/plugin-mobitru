@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 
-export type PluginCommandFetchFn = (
-  url: string,
-  options: Record<string, unknown>
-) => Promise<unknown>;
+export interface SelectorsInterface {
+  projectInfoSelector: (state: State) => ProjectInfo;
+}
 
-export interface UtilsInterface {
-  getDefectFormFields: (fields: any, checkedFieldsIds: any, integrationData: any) => string;
-  fetch?: PluginCommandFetchFn;
-  URLS?: {
-    pluginsCommandsCommon: (pluginName: string, command: string) => string;
-  };
+interface ProjectInfo {
+  id?: number;
+  projectName?: string;
+  projectKey: string;
+  projectId?: number;
+  projectSlug?: string;
+}
+
+interface Project {
+  info?: ProjectInfo;
+}
+
+interface State {
+  project?: Project;
 }
