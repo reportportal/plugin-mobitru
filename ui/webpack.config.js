@@ -46,6 +46,10 @@ const config = {
         ],
       },
       {
+        test: /\.png$/,
+        type: 'asset/inline',
+      },
+      {
         test: /\.svg$/,
         loader: 'svg-inline-loader',
       },
@@ -125,10 +129,15 @@ const config = {
           singleton: true,
           requiredVersion: pjson.dependencies['react-intl'],
         },
+        '@reportportal/ui-kit': {
+          singleton: true,
+          requiredVersion: pjson.dependencies['@reportportal/ui-kit'],
+        },
       },
       exposes: {
         './mobitruFormFields': './src/components/mobitruFormFields/index.ts',
         './mobitruSettings': './src/components/mobitruSettings/index.ts',
+        './cloudDevicesPage': './src/components/cloudDevicesPage/cloudDevicesPage.tsx',
       },
     }),
     new CopyPlugin({

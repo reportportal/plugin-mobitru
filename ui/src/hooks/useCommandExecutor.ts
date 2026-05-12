@@ -17,7 +17,7 @@
 import type { UtilsInterface } from 'extensionProps/utils';
 
 /** Same value as `pluginId` in root `gradle.properties` (first argument to `URLS.pluginsCommandsCommon`). */
-export const PLUGIN_NAME = 'template';
+export const PLUGIN_NAME = 'mobitru';
 
 /**
  * Example for **organization / instance** UI: **`POST`** on **`URLS.pluginsCommandsCommon`**
