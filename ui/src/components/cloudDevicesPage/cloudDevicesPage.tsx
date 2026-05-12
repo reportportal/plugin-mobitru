@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { Button, ExternalLinkIcon, SegmentedControl } from '@reportportal/ui-kit';
 import classNames from 'classnames/bind';
 import React, { useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -28,8 +29,6 @@ import {
 import { MOBITRU_DEVICES_URL, MOBITRU_DOCS_URL, PLATFORMS } from '../../constants/cloudDevices';
 import { messages } from '../../messages/cloudDevices';
 import styles from './cloudDevicesPage.scss';
-import { DeviceCardExternalLinkIcon } from './DeviceCardExternalLinkIcon';
-import { ExploreExternalLinkIcon } from './ExploreExternalLinkIcon';
 import MobitruIcon from './mobitruIcon';
 import { MOCK_ANDROID_DEVICES, MOCK_IOS_DEVICES, type RawDevice } from './mockData';
 
@@ -55,7 +54,7 @@ const DeviceCard = ({ device }: DeviceCardProps) => (
       <div className={cx('device-name-row')}>
         <span className={cx('device-name')}>{device.name}</span>
         <span className={cx('external-link-icon')} aria-hidden="true">
-          <DeviceCardExternalLinkIcon />
+          <ExternalLinkIcon />
         </span>
       </div>
       <span className={cx('device-version')}>{device.version}</span>
@@ -84,6 +83,16 @@ const CloudDevicesPage = () => {
   const { formatMessage } = useIntl();
   const [activePlatform, setActivePlatform] = useState<Platform>('ios');
 
+  const platformSegmentOptions = useMemo(
+    () =>
+      PLATFORMS.map(({ key, messageKey }) => ({
+        value: key,
+        label: formatMessage(messages[messageKey]),
+        selected: activePlatform === key,
+      })),
+    [activePlatform, formatMessage]
+  );
+
   const currentDevices = useMemo(
     () => groupRawDevices(activePlatform === 'ios' ? MOCK_IOS_DEVICES : MOCK_ANDROID_DEVICES),
     [activePlatform]
@@ -95,28 +104,22 @@ const CloudDevicesPage = () => {
     <div className={cx('page')}>
       <div className={cx('header')}>
         <h1 className={cx('title')}>{formatMessage(messages.pageTitle)}</h1>
-        <div className={cx('tabs')} role="tablist">
-          {PLATFORMS.map(({ key, messageKey }) => (
-            <button
-              key={key}
-              type="button"
-              role="tab"
-              aria-selected={activePlatform === key}
-              className={cx('tab', { 'tab-active': activePlatform === key })}
-              onClick={() => setActivePlatform(key)}
-            >
-              {formatMessage(messages[messageKey])}
-            </button>
-          ))}
-        </div>
-        <button type="button" className={cx('explore-button')} onClick={openInNewTab}>
-          <span>
-            <span className={cx('explore-button-text')}>
-              {formatMessage(messages.exploreDevices)}
-            </span>
-            <ExploreExternalLinkIcon />
-          </span>
-        </button>
+        <SegmentedControl
+          className={cx('platform-segment')}
+          options={platformSegmentOptions}
+          onChange={(value) => setActivePlatform(String(value) as Platform)}
+          ariaLabel={formatMessage(messages.platformFilterAriaLabel)}
+        />
+        <Button
+          type="button"
+          variant="primary"
+          className={cx('explore-button')}
+          icon={<ExternalLinkIcon />}
+          iconPlace="end"
+          onClick={openInNewTab}
+        >
+          {formatMessage(messages.exploreDevices)}
+        </Button>
       </div>
 
       <div className={cx('content')}>

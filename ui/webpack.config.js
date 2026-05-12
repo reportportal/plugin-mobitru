@@ -129,6 +129,10 @@ const config = {
           singleton: true,
           requiredVersion: pjson.dependencies['react-intl'],
         },
+        '@reportportal/ui-kit': {
+          singleton: true,
+          requiredVersion: pjson.dependencies['@reportportal/ui-kit'],
+        },
       },
       exposes: {
         './mobitruFormFields': './src/components/mobitruFormFields/index.ts',

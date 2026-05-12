@@ -5,6 +5,10 @@ export const messages = defineMessages({
   exploreDevices: { id: 'Mobitru.CloudDevices.exploreDevices', defaultMessage: 'Explore Devices' },
   tabIos: { id: 'Mobitru.CloudDevices.tabIos', defaultMessage: 'iOS' },
   tabAndroid: { id: 'Mobitru.CloudDevices.tabAndroid', defaultMessage: 'Android' },
+  platformFilterAriaLabel: {
+    id: 'Mobitru.CloudDevices.platformFilterAriaLabel',
+    defaultMessage: 'Device platform',
+  },
   premiumDevices: {
     id: 'Mobitru.CloudDevices.premiumDevices',
     defaultMessage: 'Premium devices',
