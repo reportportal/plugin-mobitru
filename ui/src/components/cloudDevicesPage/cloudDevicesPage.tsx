@@ -52,7 +52,7 @@ interface LocationHeaderLayoutProps {
   children?: React.ReactNode;
   breadcrumbs?: LocationBreadcrumb[];
   tree?: LocationBreadcrumb[];
-  /** When false, host title is not truncated with ellipsis (e.g. Cloud Devices toolbar). */
+  className?: string;
   titleEllipsis?: boolean;
 }
 
@@ -223,6 +223,7 @@ const CloudDevicesPageInner = () => {
         <div className={cx('header')}>
           <LocationHeaderLayout
             title={pageTitle}
+            className={cx('location-header')}
             titleEllipsis={false}
             breadcrumbs={[routeCrumbData.lastCrumb]}
             tree={[routeCrumbData.rootCrumb]}

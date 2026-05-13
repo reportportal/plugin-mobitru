@@ -28,6 +28,10 @@
   border-bottom: 1px solid var(--rp-ui-color-border);
 }
 
+.location-header {
+  padding-bottom: 12px;
+}
+
 .header-toolbar {
   display: grid;
   grid-template-columns: 0.75fr auto 1fr;
