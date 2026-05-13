@@ -1,6 +1,5 @@
+import { messages } from 'messages/cloudDevices';
 import { Platform } from 'types/cloudDevices';
-
-import { messages } from '../messages/cloudDevices';
 
 export const PLATFORMS: { key: Platform; messageKey: keyof typeof messages }[] = [
   { key: 'ios', messageKey: 'tabIos' },

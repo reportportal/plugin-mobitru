@@ -16,6 +16,9 @@
 
 import { Button, ExternalLinkIcon, SegmentedControl } from '@reportportal/ui-kit';
 import classNames from 'classnames/bind';
+import { MOBITRU_DEVICES_URL, MOBITRU_DOCS_URL, PLATFORMS } from 'constants/cloudDevices';
+import { ExtensionPropsContext } from 'hooks/useExtensionProps';
+import { messages } from 'messages/cloudDevices';
 import React, { useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import {
@@ -27,9 +30,6 @@ import {
 } from 'types/cloudDevices';
 import type { ExtensionProps } from 'types/extensionProps';
 
-import { MOBITRU_DEVICES_URL, MOBITRU_DOCS_URL, PLATFORMS } from '../../constants/cloudDevices';
-import { ExtensionPropsContext } from '../../hooks/useExtensionProps';
-import { messages } from '../../messages/cloudDevices';
 import styles from './cloudDevicesPage.scss';
 import MobitruIcon from './mobitruIcon';
 import { MOCK_ANDROID_DEVICES, MOCK_IOS_DEVICES, type RawDevice } from './mockData';
@@ -140,7 +140,7 @@ const CloudDevicesPageInner = () => {
     const PROJECT_DASHBOARD_PAGE = String(constants?.PROJECT_DASHBOARD_PAGE ?? '');
 
     const rootCrumb: LocationBreadcrumb = {
-      title: formatMessage(messages.allOrganizations),
+      title: formatMessage(messages?.allOrganizations),
       link: { type: ORGANIZATIONS_PAGE },
       children: [],
     };
@@ -191,9 +191,11 @@ const CloudDevicesPageInner = () => {
     | React.FC<LocationHeaderLayoutProps>
     | undefined;
 
-  const platformToolbar = (
+  const pageTitle = formatMessage(messages.pageTitle);
+
+  const renderPlatformToolbar = (startContent?: React.ReactNode) => (
     <div className={cx('header-toolbar')}>
-      <div className={cx('header-toolbar-start')} aria-hidden />
+      <div className={cx('header-toolbar-start')}>{startContent}</div>
       <SegmentedControl
         className={cx('platform-segment')}
         options={platformSegmentOptions}
@@ -220,16 +222,18 @@ const CloudDevicesPageInner = () => {
       {LocationHeaderLayout ? (
         <div className={cx('header')}>
           <LocationHeaderLayout
-            title={formatMessage(messages.pageTitle)}
+            title={pageTitle}
             titleEllipsis={false}
             breadcrumbs={[routeCrumbData.lastCrumb]}
             tree={[routeCrumbData.rootCrumb]}
           >
-            {platformToolbar}
+            {renderPlatformToolbar()}
           </LocationHeaderLayout>
         </div>
       ) : (
-        <div className={cx('header-fallback')}>{platformToolbar}</div>
+        <div className={cx('header-fallback')}>
+          {renderPlatformToolbar(<h1 className={cx('page-title')}>{pageTitle}</h1>)}
+        </div>
       )}
 
       <div className={cx('content')}>
