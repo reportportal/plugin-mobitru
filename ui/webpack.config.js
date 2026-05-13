@@ -62,6 +62,7 @@ const config = {
       constants: path.resolve(__dirname, 'src/constants'),
       icons: path.resolve(__dirname, 'src/icons'),
       hooks: path.resolve(__dirname, 'src/hooks'),
+      messages: path.resolve(__dirname, 'src/messages'),
       types: path.resolve(__dirname, 'src/types'),
       utils: path.resolve(__dirname, 'src/utils'),
       analyticsEvents: path.resolve(__dirname, 'src/analyticsEvents'),

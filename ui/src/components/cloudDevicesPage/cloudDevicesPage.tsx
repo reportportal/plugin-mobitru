@@ -16,7 +16,10 @@
 
 import { Button, ExternalLinkIcon, SegmentedControl } from '@reportportal/ui-kit';
 import classNames from 'classnames/bind';
-import React, { useMemo, useState } from 'react';
+import { MOBITRU_DEVICES_URL, MOBITRU_DOCS_URL, PLATFORMS } from 'constants/cloudDevices';
+import { ExtensionPropsContext } from 'hooks/useExtensionProps';
+import { messages } from 'messages/cloudDevices';
+import React, { useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import {
   Device,
@@ -25,14 +28,33 @@ import {
   DevicesData,
   Platform,
 } from 'types/cloudDevices';
+import type { ExtensionProps } from 'types/extensionProps';
 
-import { MOBITRU_DEVICES_URL, MOBITRU_DOCS_URL, PLATFORMS } from '../../constants/cloudDevices';
-import { messages } from '../../messages/cloudDevices';
 import styles from './cloudDevicesPage.scss';
 import MobitruIcon from './mobitruIcon';
 import { MOCK_ANDROID_DEVICES, MOCK_IOS_DEVICES, type RawDevice } from './mockData';
 
 const cx = classNames.bind(styles);
+
+interface RouteLink {
+  type: string;
+  payload?: Record<string, string>;
+}
+
+interface LocationBreadcrumb {
+  title: string;
+  link?: RouteLink;
+  children?: LocationBreadcrumb[];
+}
+
+interface LocationHeaderLayoutProps {
+  title: string;
+  children?: React.ReactNode;
+  breadcrumbs?: LocationBreadcrumb[];
+  tree?: LocationBreadcrumb[];
+  /** When false, host title is not truncated with ellipsis (e.g. Cloud Devices toolbar). */
+  titleEllipsis?: boolean;
+}
 
 const openInNewTab = () => window.open(MOBITRU_DEVICES_URL, '_blank', 'noopener,noreferrer');
 
@@ -79,9 +101,28 @@ const DeviceGroup = ({ title, devices }: DeviceGroupProps) => {
   );
 };
 
-const CloudDevicesPage = () => {
+const CloudDevicesPageInner = () => {
   const { formatMessage } = useIntl();
+  const { components, selectors, constants, lib } = useContext(ExtensionPropsContext);
+  const reduxSelect = lib?.useSelector as <R>(fn: (state: unknown) => R) => R | undefined;
+
   const [activePlatform, setActivePlatform] = useState<Platform>('ios');
+
+  const projectName =
+    reduxSelect?.((selectors?.projectNameSelector ?? (() => '')) as (state: unknown) => string) ??
+    '';
+  const organizationName =
+    reduxSelect?.(
+      (selectors?.activeOrganizationNameSelector ?? (() => '')) as (state: unknown) => string
+    ) ?? '';
+  const organizationSlug =
+    reduxSelect?.(
+      (selectors?.urlOrganizationSlugSelector ?? (() => '')) as (state: unknown) => string
+    ) ?? '';
+  const projectSlug =
+    reduxSelect?.(
+      (selectors?.urlProjectSlugSelector ?? (() => '')) as (state: unknown) => string
+    ) ?? '';
 
   const platformSegmentOptions = useMemo(
     () =>
@@ -93,6 +134,52 @@ const CloudDevicesPage = () => {
     [activePlatform, formatMessage]
   );
 
+  const routeCrumbData = useMemo(() => {
+    const ORGANIZATIONS_PAGE = String(constants?.ORGANIZATIONS_PAGE ?? '');
+    const ORGANIZATION_PROJECTS_PAGE = String(constants?.ORGANIZATION_PROJECTS_PAGE ?? '');
+    const PROJECT_DASHBOARD_PAGE = String(constants?.PROJECT_DASHBOARD_PAGE ?? '');
+
+    const rootCrumb: LocationBreadcrumb = {
+      title: formatMessage(messages?.allOrganizations),
+      link: { type: ORGANIZATIONS_PAGE },
+      children: [],
+    };
+    let lastCrumb: LocationBreadcrumb = rootCrumb;
+
+    if (organizationSlug) {
+      const organizationCrumb: LocationBreadcrumb = {
+        title: organizationName ?? '',
+        link: { type: ORGANIZATION_PROJECTS_PAGE, payload: { organizationSlug } },
+        children: [],
+      };
+      rootCrumb.children = [organizationCrumb];
+      lastCrumb = organizationCrumb;
+
+      if (projectSlug) {
+        const projectCrumb: LocationBreadcrumb = {
+          title: projectName ?? '',
+          link: {
+            type: PROJECT_DASHBOARD_PAGE,
+            payload: { organizationSlug, projectSlug },
+          },
+        };
+        organizationCrumb.children = [projectCrumb];
+        lastCrumb = projectCrumb;
+      }
+    }
+
+    return { rootCrumb, lastCrumb };
+  }, [
+    constants?.ORGANIZATIONS_PAGE,
+    constants?.ORGANIZATION_PROJECTS_PAGE,
+    constants?.PROJECT_DASHBOARD_PAGE,
+    formatMessage,
+    organizationName,
+    organizationSlug,
+    projectName,
+    projectSlug,
+  ]);
+
   const currentDevices = useMemo(
     () => groupRawDevices(activePlatform === 'ios' ? MOCK_IOS_DEVICES : MOCK_ANDROID_DEVICES),
     [activePlatform]
@@ -100,16 +187,22 @@ const CloudDevicesPage = () => {
 
   const hasDevices = currentDevices.premium.length > 0 || currentDevices.available.length > 0;
 
-  return (
-    <div className={cx('page')}>
-      <div className={cx('header')}>
-        <h1 className={cx('title')}>{formatMessage(messages.pageTitle)}</h1>
-        <SegmentedControl
-          className={cx('platform-segment')}
-          options={platformSegmentOptions}
-          onChange={(value) => setActivePlatform(String(value) as Platform)}
-          ariaLabel={formatMessage(messages.platformFilterAriaLabel)}
-        />
+  const LocationHeaderLayout = components?.LocationHeaderLayout as
+    | React.FC<LocationHeaderLayoutProps>
+    | undefined;
+
+  const pageTitle = formatMessage(messages.pageTitle);
+
+  const renderPlatformToolbar = (startContent?: React.ReactNode) => (
+    <div className={cx('header-toolbar')}>
+      <div className={cx('header-toolbar-start')}>{startContent}</div>
+      <SegmentedControl
+        className={cx('platform-segment')}
+        options={platformSegmentOptions}
+        onChange={(value) => setActivePlatform(String(value) as Platform)}
+        ariaLabel={formatMessage(messages.platformFilterAriaLabel)}
+      />
+      <div className={cx('header-toolbar-end')}>
         <Button
           type="button"
           variant="primary"
@@ -121,6 +214,27 @@ const CloudDevicesPage = () => {
           {formatMessage(messages.exploreDevices)}
         </Button>
       </div>
+    </div>
+  );
+
+  return (
+    <div className={cx('page')}>
+      {LocationHeaderLayout ? (
+        <div className={cx('header')}>
+          <LocationHeaderLayout
+            title={pageTitle}
+            titleEllipsis={false}
+            breadcrumbs={[routeCrumbData.lastCrumb]}
+            tree={[routeCrumbData.rootCrumb]}
+          >
+            {renderPlatformToolbar()}
+          </LocationHeaderLayout>
+        </div>
+      ) : (
+        <div className={cx('header-fallback')}>
+          {renderPlatformToolbar(<h1 className={cx('page-title')}>{pageTitle}</h1>)}
+        </div>
+      )}
 
       <div className={cx('content')}>
         {!hasDevices && (
@@ -159,5 +273,11 @@ const CloudDevicesPage = () => {
     </div>
   );
 };
+
+const CloudDevicesPage = (props: ExtensionProps) => (
+  <ExtensionPropsContext.Provider value={props}>
+    <CloudDevicesPageInner />
+  </ExtensionPropsContext.Provider>
+);
 
 export default CloudDevicesPage;
