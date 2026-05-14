@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { SECRET_FIELDS_KEY } from 'constants/common';
 import {
   FieldElementComponent,
   FieldErrorHintComponent,
@@ -29,6 +30,7 @@ interface MobitruFormFieldsProps {
   initialize: (data: object) => void;
   disabled: boolean;
   initialData: object;
+  updateMetaData: (meta: object) => void;
   components: {
     FieldElement: FieldElementComponent;
     FieldErrorHint: FieldErrorHintComponent;
@@ -45,6 +47,7 @@ export const MobitruFormFields = ({
   initialize,
   disabled,
   initialData,
+  updateMetaData,
   validators,
   components,
 }: Props) => {
@@ -71,7 +74,15 @@ export const MobitruFormFields = ({
   // run only on mount — re-running on dep change would reset the form
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    initialize(initialData);
+    const visibleInitialData = {
+      ...initialData,
+      apiKey: undefined,
+    };
+
+    initialize(visibleInitialData);
+    updateMetaData({
+      [SECRET_FIELDS_KEY]: ['apiKey'],
+    });
   }, []);
   /* eslint-enable react-hooks/exhaustive-deps */
 
