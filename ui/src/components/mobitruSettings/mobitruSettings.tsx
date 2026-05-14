@@ -15,7 +15,9 @@
  */
 
 import { IntegrationSettingsInterface, MobitruIntegrationParameters } from 'extensionProps/common';
+import { messages } from 'messages/integration';
 import { useMemo } from 'react';
+import { useIntl } from 'react-intl';
 
 import { createMobitruFormFields } from './createMobitruFormFields';
 
@@ -33,6 +35,7 @@ export const MobitruSettings = ({
   constants,
   actions,
 }: Props) => {
+  const { formatMessage } = useIntl();
   const { IntegrationSettings, BtsAuthFieldsInfo, FieldElement, FieldErrorHint, FieldText } =
     components;
   const { requiredField } = validators;
@@ -40,9 +43,9 @@ export const MobitruSettings = ({
   const params = data.integrationParameters as unknown as MobitruIntegrationParameters;
 
   const authFieldsConfig = [
-    { value: params.url ?? '', message: 'Mobitru URL' },
-    { value: params.apiKey ? API_KEY_MASK : '', message: 'API key' },
-    { value: params.billingUnit ?? '', message: 'Mobitru Billing unit (slug)' },
+    { value: params.url ?? '', message: formatMessage(messages.url) },
+    { value: params.apiKey ? API_KEY_MASK : '', message: formatMessage(messages.apiKey) },
+    { value: params.billingUnit ?? '', message: formatMessage(messages.billingUnit) },
   ];
 
   const editAuthClickHandler = (testConnection: () => void) => {
