@@ -5,6 +5,8 @@ plugins {
     id "com.github.node-gradle.node" version "7.1.0"
 }
 
+version = project.findProperty("version") ?: "1.0.0"
+
 project.ext {
     publishRepo = "https://maven.pkg.github.com/reportportal/plugin-mobitru"
     dependencyRepos = ["plugin-api", "commons-bom"]
