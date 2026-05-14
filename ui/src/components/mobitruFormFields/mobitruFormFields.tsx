@@ -19,7 +19,9 @@ import {
   FieldErrorHintComponent,
   FieldTextComponent,
 } from 'extensionProps/components';
-import { useEffect } from 'react';
+import { messages } from 'messages/integration';
+import { useCallback, useEffect } from 'react';
+import { useIntl } from 'react-intl';
 
 type Validator = (value: string) => string | undefined;
 
@@ -37,19 +39,6 @@ interface MobitruFormFieldsProps {
   };
 }
 
-const validateHttpsUrl = (value: string) => {
-  if (!value) return undefined;
-  try {
-    const url = new URL(value);
-    if (url.protocol !== 'https:') {
-      return 'Please provide a valid HTTPS URL';
-    }
-  } catch {
-    return 'Please provide a valid URL';
-  }
-  return undefined;
-};
-
 type Props = MobitruFormFieldsProps;
 
 export const MobitruFormFields = ({
@@ -59,8 +48,25 @@ export const MobitruFormFields = ({
   validators,
   components,
 }: Props) => {
+  const { formatMessage } = useIntl();
   const { FieldElement, FieldErrorHint, FieldText } = components;
   const { requiredField } = validators;
+
+  const validateHttpsUrl = useCallback(
+    (value: string) => {
+      if (!value) return undefined;
+      try {
+        const url = new URL(value);
+        if (url.protocol !== 'https:') {
+          return formatMessage(messages.invalidHttpsUrl);
+        }
+      } catch {
+        return formatMessage(messages.invalidUrl);
+      }
+      return undefined;
+    },
+    [formatMessage]
+  );
 
   // run only on mount — re-running on dep change would reset the form
   /* eslint-disable react-hooks/exhaustive-deps */
@@ -73,7 +79,7 @@ export const MobitruFormFields = ({
     <div>
       <FieldElement
         name="url"
-        label="Mobitru URL"
+        label={formatMessage(messages.url)}
         isRequired
         validate={[requiredField, validateHttpsUrl]}
       >
@@ -81,14 +87,19 @@ export const MobitruFormFields = ({
           <FieldText disabled={disabled} defaultWidth={false} />
         </FieldErrorHint>
       </FieldElement>
-      <FieldElement name="apiKey" label="API key" isRequired validate={[requiredField]}>
+      <FieldElement
+        name="apiKey"
+        label={formatMessage(messages.apiKey)}
+        isRequired
+        validate={[requiredField]}
+      >
         <FieldErrorHint provideHint={false}>
           <FieldText disabled={disabled} defaultWidth={false} />
         </FieldErrorHint>
       </FieldElement>
       <FieldElement
         name="billingUnit"
-        label="Mobitru Billing unit (slug)"
+        label={formatMessage(messages.billingUnit)}
         isRequired
         validate={[requiredField]}
       >
