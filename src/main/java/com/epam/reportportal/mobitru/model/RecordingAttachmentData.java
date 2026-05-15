@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 EPAM Systems
+ * Copyright 2026 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-
 package com.epam.reportportal.mobitru.model;
 
-public class Constants {
-
-  public static final String PLATFORM = "platform";
-
-  // endpoints
-  public static final String TEST_CONNECTION = "/billing/unit/%s/automation/api/device/ios";
-  public static final String GET_DEVICES = "/billing/unit/%s/automation/api/device/%s";
-  public static final String GET_RECORDING = "/billing/unit/%s/automation/api/recording/%s";
-
+/**
+ * Downloaded Mobitru recording payload with the metadata required to persist it as an attachment.
+ *
+ * @param fileName    user-visible file name
+ * @param contentType MIME type reported by Mobitru
+ * @param content     binary file content
+ */
+public record RecordingAttachmentData(String fileName, String contentType, byte[] content) {
 }
