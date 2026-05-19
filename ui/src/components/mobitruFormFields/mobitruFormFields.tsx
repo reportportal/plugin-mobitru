@@ -74,6 +74,8 @@ export const MobitruFormFields = ({
   const initialDataRef = useRef(initialData);
   initialDataRef.current = initialData;
 
+  const hasMountedRef = useRef(false);
+
   const initializeWithoutApiKey = useCallback(
     (data: object) => {
       initialize({
@@ -88,19 +90,16 @@ export const MobitruFormFields = ({
     updateMetaData({
       [SECRET_FIELDS_KEY]: ['apiKey'],
     });
-
-    if (!disabled) {
-      initializeWithoutApiKey(initialDataRef.current);
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useLayoutEffect(() => {
-    if (!disabled) {
-      return;
-    }
+    const isMount = !hasMountedRef.current;
+    hasMountedRef.current = true;
 
-    initializeWithoutApiKey(initialDataRef.current);
+    if (isMount || disabled) {
+      initializeWithoutApiKey(initialDataRef.current);
+    }
   }, [disabled, initializeWithoutApiKey]);
 
   return (
