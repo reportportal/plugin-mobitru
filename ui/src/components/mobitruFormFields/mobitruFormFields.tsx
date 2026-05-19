@@ -21,7 +21,7 @@ import {
   FieldTextComponent,
 } from 'extensionProps/components';
 import { messages } from 'messages/integration';
-import { useCallback, useEffect, useLayoutEffect } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { useIntl } from 'react-intl';
 
 type Validator = (value: string) => string | undefined;
@@ -71,6 +71,9 @@ export const MobitruFormFields = ({
     [formatMessage]
   );
 
+  const initialDataRef = useRef(initialData);
+  initialDataRef.current = initialData;
+
   const initializeWithoutApiKey = useCallback(
     (data: object) => {
       initialize({
@@ -87,17 +90,18 @@ export const MobitruFormFields = ({
     });
 
     if (!disabled) {
-      initializeWithoutApiKey(initialData);
+      initializeWithoutApiKey(initialDataRef.current);
     }
-  }, [disabled, initialData, initializeWithoutApiKey, updateMetaData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useLayoutEffect(() => {
     if (!disabled) {
       return;
     }
 
-    initializeWithoutApiKey(initialData);
-  }, [disabled, initialData, initializeWithoutApiKey]);
+    initializeWithoutApiKey(initialDataRef.current);
+  }, [disabled, initializeWithoutApiKey]);
 
   return (
     <div>
