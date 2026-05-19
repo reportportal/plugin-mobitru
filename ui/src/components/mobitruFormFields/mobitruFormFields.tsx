@@ -21,7 +21,7 @@ import {
   FieldTextComponent,
 } from 'extensionProps/components';
 import { messages } from 'messages/integration';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useLayoutEffect } from 'react';
 import { useIntl } from 'react-intl';
 
 type Validator = (value: string) => string | undefined;
@@ -71,20 +71,33 @@ export const MobitruFormFields = ({
     [formatMessage]
   );
 
-  // run only on mount — re-running on dep change would reset the form
-  /* eslint-disable react-hooks/exhaustive-deps */
-  useEffect(() => {
-    const visibleInitialData = {
-      ...initialData,
-      apiKey: undefined,
-    };
+  const initializeWithoutApiKey = useCallback(
+    (data: object) => {
+      initialize({
+        ...data,
+        apiKey: undefined,
+      });
+    },
+    [initialize]
+  );
 
-    initialize(visibleInitialData);
+  useEffect(() => {
     updateMetaData({
       [SECRET_FIELDS_KEY]: ['apiKey'],
     });
-  }, []);
-  /* eslint-enable react-hooks/exhaustive-deps */
+
+    if (!disabled) {
+      initializeWithoutApiKey(initialData);
+    }
+  }, [disabled, initialData, initializeWithoutApiKey, updateMetaData]);
+
+  useLayoutEffect(() => {
+    if (!disabled) {
+      return;
+    }
+
+    initializeWithoutApiKey(initialData);
+  }, [disabled, initialData, initializeWithoutApiKey]);
 
   return (
     <div>
