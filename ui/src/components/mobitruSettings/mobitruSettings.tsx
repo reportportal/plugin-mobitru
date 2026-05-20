@@ -100,7 +100,6 @@ export const MobitruSettings = ({
       formFieldsComponent={FormFieldsComponent}
       formKey={constants.BTS_FIELDS_FORM}
       editAuthConfig={editAuthConfig}
-      preventTestConnection
     />
   );
 };
