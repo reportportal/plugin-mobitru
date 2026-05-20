@@ -19,7 +19,7 @@ export interface SelectorsInterface {
 }
 
 interface ProjectInfo {
-  id?: number;
+  id: number;
   projectName?: string;
   projectKey: string;
   projectId?: number;
@@ -27,9 +27,9 @@ interface ProjectInfo {
 }
 
 interface Project {
-  info?: ProjectInfo;
+  info: ProjectInfo;
 }
 
 interface State {
-  project?: Project;
+  project: Project;
 }

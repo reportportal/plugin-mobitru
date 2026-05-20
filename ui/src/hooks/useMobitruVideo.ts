@@ -15,7 +15,7 @@
  */
 
 import { useExtensionProps } from 'hooks/useExtensionProps';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 const MOBITRU_LOG_LEVEL = 'mobitru';
@@ -37,54 +37,85 @@ export const useMobitruVideo = (testItemId: number) => {
   const [videoSrc, setVideoSrc] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const currentObjectUrlRef = useRef<string>('');
   const {
     utils: { fetch, URLS },
     selectors: { projectInfoSelector },
   } = useExtensionProps();
-  const { projectKey } = useSelector(projectInfoSelector) as { projectKey: string };
-
-  const fetchItemLogs = async (id: number) => {
-    const logsRes = await fetch<LogItemsResponse>(URLS.logItems(projectKey, id), {
-      params: {
-        'filter.eq.level': MOBITRU_LOG_LEVEL,
-      },
-    });
-
-    return logsRes.content;
-  };
-
-  const getVideo = async (itemId: number) => {
-    setLoading(true);
-    try {
-      const logList = await fetchItemLogs(itemId);
-      // select a single video for the 1st iteration
-      const logBinaryContent = logList[0]?.binaryContent;
-
-      if (logBinaryContent) {
-        const fileData = await fetch<Blob>(
-          URLS.getFileById(projectKey, Number(logBinaryContent.id)),
-          {
-            responseType: 'blob',
-          }
-        );
-
-        const videoObjectUrl = URL.createObjectURL(fileData);
-
-        setVideoSrc(videoObjectUrl);
-
-        URL.revokeObjectURL(videoObjectUrl);
-      }
-    } catch (e: unknown) {
-      const errorMessage = e instanceof Error ? e.message : String(e);
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { projectKey } = useSelector(projectInfoSelector);
 
   useEffect(() => {
-    getVideo(testItemId);
-  }, [testItemId]);
+    const fetchItemLogs = async (id: number, signal: AbortSignal) => {
+      const logsRes = await fetch<LogItemsResponse>(URLS.logItems(projectKey, id), {
+        params: {
+          'filter.eq.level': MOBITRU_LOG_LEVEL,
+        },
+        signal,
+      });
+
+      return logsRes.content;
+    };
+
+    const getVideo = async (itemId: number, signal: AbortSignal) => {
+      setLoading(true);
+      setError('');
+      try {
+        const logList = await fetchItemLogs(itemId, signal);
+        // select a single video for the 1st iteration
+        const logBinaryContent = logList[0]?.binaryContent;
+
+        if (logBinaryContent) {
+          const fileData = await fetch<Blob>(
+            URLS.getFileById(projectKey, Number(logBinaryContent.id)),
+            {
+              responseType: 'blob',
+              signal,
+            }
+          );
+
+          if (signal.aborted) {
+            return;
+          }
+
+          const videoObjectUrl = URL.createObjectURL(fileData);
+
+          if (currentObjectUrlRef.current) {
+            URL.revokeObjectURL(currentObjectUrlRef.current);
+          }
+
+          currentObjectUrlRef.current = videoObjectUrl;
+          setVideoSrc(videoObjectUrl);
+        }
+      } catch (e: unknown) {
+        if (signal.aborted) {
+          return;
+        }
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        setError(errorMessage);
+      } finally {
+        if (!signal.aborted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    const abortController = new AbortController();
+
+    getVideo(testItemId, abortController.signal);
+
+    return () => {
+      abortController.abort();
+    };
+  }, [URLS, fetch, projectKey, testItemId]);
+
+  useEffect(
+    () => () => {
+      if (currentObjectUrlRef.current) {
+        URL.revokeObjectURL(currentObjectUrlRef.current);
+      }
+    },
+    []
+  );
 
   return { videoSrc, loading, error };
 };
