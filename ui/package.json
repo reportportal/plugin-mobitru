@@ -13,8 +13,7 @@
     "format": "npm run eslint -- --fix",
     "format:scss": "npm run stylelint -- --fix",
     "prepare": "cd .. && husky install",
-    "precommit": "lint-staged",
-    "postcommit": "git update-index --again"
+    "precommit": "lint-staged"
   },
   "author": "",
   "license": "Apache-2.0",
