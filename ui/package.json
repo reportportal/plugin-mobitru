@@ -79,10 +79,7 @@
     "npm": ">=10.2.4"
   },
   "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --fix",
-      "git add"
-    ],
+    "*.{ts,tsx}": ["eslint --fix"],
     "*.scss": [
       "stylelint --fix",
       "prettier --write"
