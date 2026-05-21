@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-import type { ActionsInterface } from 'extensionProps/actions';
-import type { UtilsInterface } from 'extensionProps/utils';
-import type { ValidatorsInterface } from 'extensionProps/validators';
+import type { ActionsInterface } from './actions';
+import type { SelectorsInterface } from './selectors';
+import type { UtilsInterface } from './utils';
+import type { ValidatorsInterface } from './validators';
 
 /** Shape of the object spread onto every remote extension root by ReportPortal `service-ui` (see `createImportProps`). */
+/** Rich out the ExtensionProps with missed types while using the corresponding stuff */
 export type HostSelector = (state: unknown) => unknown;
 
 export interface ExtensionProps {
-  lib?: Record<string, unknown>;
+  lib: Record<string, unknown>;
   components: Record<string, unknown>;
-  constants?: Record<string, unknown>;
-  selectors?: Record<string, HostSelector>;
-  actions?: Partial<ActionsInterface> & Record<string, unknown>;
-  utils?: Partial<UtilsInterface> & Record<string, unknown>;
-  validators?: Partial<ValidatorsInterface> & Record<string, unknown>;
-  icons?: Record<string, unknown>;
-  HOCs?: Record<string, unknown>;
-  portalRootIds?: Record<string, string>;
-  componentLibrary?: Record<string, unknown>;
+  constants: Record<string, unknown>;
+  selectors: SelectorsInterface & Record<string, HostSelector>;
+  actions: ActionsInterface & Record<string, unknown>;
+  utils: UtilsInterface;
+  validators: ValidatorsInterface & Record<string, unknown>;
+  icons: Record<string, unknown>;
+  HOCs: Record<string, unknown>;
+  portalRootIds: Record<string, string>;
+  componentLibrary: Record<string, unknown>;
 }

@@ -1,0 +1,118 @@
+/*
+ * Copyright 2026 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { BubblesLoader, SystemMessage } from '@reportportal/ui-kit';
+import classNames from 'classnames/bind';
+import { RpAttribute } from 'extensionProps/common';
+import { ExtensionPropsContext } from 'hooks/useExtensionProps';
+import { useMobitruVideo } from 'hooks/useMobitruVideo';
+import type { PlyrOptions, PlyrSource } from 'plyr-react';
+import { Plyr } from 'plyr-react';
+import React from 'react';
+import { defineMessages, useIntl } from 'react-intl';
+import type { ExtensionProps } from 'types/extensionProps';
+
+import styles from './remoteDeviceTab.scss';
+
+const cx = classNames.bind(styles);
+
+const PLAYER_OPTIONS: PlyrOptions = {
+  controls: [
+    'play-large',
+    'progress',
+    'play',
+    'mute',
+    'volume',
+    'current-time',
+    'duration',
+    'fullscreen',
+  ],
+  clickToPlay: true,
+  keyboard: {
+    focused: true,
+    global: false,
+  },
+  ratio: '16:9',
+  tooltips: {
+    controls: false,
+    seek: false,
+  },
+};
+
+const messages = defineMessages({
+  videoRecordTitle: {
+    id: 'LogTab.videoRecordTitle',
+    defaultMessage: 'VIDEO RECORD',
+  },
+  empty: {
+    id: 'LogTab.empty',
+    defaultMessage: 'No Mobitru video evidence is available for this test item.',
+  },
+});
+
+interface LogItem {
+  id: number;
+  attributes?: RpAttribute[];
+}
+
+interface LogTabProps {
+  logItem: LogItem;
+}
+
+const RemoteDeviceTabInner = ({ logItem }: LogTabProps) => {
+  const { formatMessage } = useIntl();
+  const { videoSrc, loading } = useMobitruVideo(logItem.id);
+
+  const playerSource: PlyrSource = {
+    type: 'video',
+    sources: [
+      {
+        src: videoSrc,
+        type: 'video/mp4',
+      },
+    ],
+  };
+
+  const getVideoBlock = () =>
+    videoSrc ? (
+      <div className={cx('video-player')}>
+        <Plyr options={PLAYER_OPTIONS} playsInline source={playerSource} />
+      </div>
+    ) : (
+      <div className={cx('empty')}>
+        <SystemMessage mode="info" caption={formatMessage(messages.empty)} />
+      </div>
+    );
+
+  return (
+    <div className={cx('root')} key={logItem.id}>
+      <div className={cx('columns')}>
+        <section className={cx('column')} aria-label={formatMessage(messages.videoRecordTitle)}>
+          <div className={cx('column-title')}>{formatMessage(messages.videoRecordTitle)}</div>
+          <div className={cx('video-block')}>{loading ? <BubblesLoader /> : getVideoBlock()}</div>
+        </section>
+      </div>
+    </div>
+  );
+};
+
+const RemoteDeviceTab = ({ logItem, ...extensionProps }: ExtensionProps & { logItem: LogItem }) => (
+  <ExtensionPropsContext.Provider value={extensionProps}>
+    <RemoteDeviceTabInner logItem={logItem} />
+  </ExtensionPropsContext.Provider>
+);
+
+export { RemoteDeviceTab };

@@ -14,13 +14,22 @@
  * limitations under the License.
  */
 
-import { createContext, useContext } from 'react';
-import { type ExtensionProps } from 'types/extensionProps';
+export interface SelectorsInterface {
+  projectInfoSelector: (state: State) => ProjectInfo;
+}
 
-export const ExtensionPropsContext = createContext<ExtensionProps>(
-  // default props aren't used, real extensionProps are mandatory for ExtensionPropsContext.Provider
-  null as unknown as ExtensionProps
-);
+interface ProjectInfo {
+  id: number;
+  projectName?: string;
+  projectKey: string;
+  projectId?: number;
+  projectSlug?: string;
+}
 
-export const useExtensionProps = (): ExtensionProps =>
-  useContext(ExtensionPropsContext) as ExtensionProps;
+interface Project {
+  info: ProjectInfo;
+}
+
+interface State {
+  project: Project;
+}

@@ -14,4 +14,14 @@
  * limitations under the License.
  */
 
-export { type UtilsInterface } from './types';
+export type FetchFn = <T = unknown>(url: string, options?: Record<string, unknown>) => Promise<T>;
+
+export interface UtilsInterface extends Record<string, unknown> {
+  getDefectFormFields: (fields: any, checkedFieldsIds: any, integrationData: any) => string;
+  fetch: FetchFn;
+  URLS: {
+    pluginsCommandsCommon: (pluginName: string, command: string) => string;
+    logItems: (projectKey: string, itemId: number, level?: string) => string;
+    getFileById: (projectKey: string, dataId: number, loadThumbnail?: boolean) => string;
+  };
+}

@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-export type PluginCommandFetchFn = (
-  url: string,
-  options: Record<string, unknown>
-) => Promise<unknown>;
+import { RemoteDeviceTab } from './remoteDeviceTab';
 
-export interface UtilsInterface {
-  getDefectFormFields: (fields: any, checkedFieldsIds: any, integrationData: any) => string;
-  fetch?: PluginCommandFetchFn;
-  URLS?: {
-    pluginsCommandsCommon: (pluginName: string, command: string) => string;
-  };
-}
+export { RemoteDeviceTab };
+export default RemoteDeviceTab;

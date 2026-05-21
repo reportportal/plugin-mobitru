@@ -51,6 +51,12 @@ const config = {
       },
       {
         test: /\.svg$/,
+        issuer: /\.(sa|sc|c)ss$/,
+        type: 'asset/inline',
+      },
+      {
+        test: /\.svg$/,
+        issuer: { not: [/\.(sa|sc|c)ss$/] },
         loader: 'svg-inline-loader',
       },
     ],
@@ -66,11 +72,7 @@ const config = {
       types: path.resolve(__dirname, 'src/types'),
       utils: path.resolve(__dirname, 'src/utils'),
       analyticsEvents: path.resolve(__dirname, 'src/analyticsEvents'),
-      'extensionProps/components': path.resolve(__dirname, 'src/types/extensionProps/componentsTypes'),
-      'extensionProps/common': path.resolve(__dirname, 'src/types/extensionProps/common'),
-      'extensionProps/utils': path.resolve(__dirname, 'src/types/extensionProps/utilsTypes'),
-      'extensionProps/actions': path.resolve(__dirname, 'src/types/extensionProps/actionsTypes'),
-      'extensionProps/validators': path.resolve(__dirname, 'src/types/extensionProps/validatorTypes'),
+      extensionProps: path.resolve(__dirname, 'src/types/extensionProps'),
     },
   },
   externals: ['redux'],
@@ -139,6 +141,7 @@ const config = {
         './mobitruFormFields': './src/components/mobitruFormFields/index.ts',
         './mobitruSettings': './src/components/mobitruSettings/index.ts',
         './cloudDevicesPage': './src/components/cloudDevicesPage/cloudDevicesPage.tsx',
+        './remoteDeviceTab': './src/components/remoteDeviceTab/index.ts',
       },
     }),
     new CopyPlugin({

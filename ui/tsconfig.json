@@ -6,29 +6,51 @@
     "downlevelIteration": true,
     "declaration": true,
     "allowJs": true,
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
     "module": "ES2015",
     "target": "ES2015",
     "baseUrl": "./",
     "strict": true,
     "jsx": "react-jsx",
     "paths": {
-      "*": ["node_modules/*"],
-      "analyticsEvents/*": ["src/analyticsEvents/*"],
-      "components/*": ["src/components/*"],
-      "constants/*": ["src/constants/*"],
-      "hooks/*": ["src/hooks/*"],
-      "icons/*": ["src/icons/*"],
-      "messages/*": ["src/messages/*"],
-      "types/*": ["src/types/*"],
-      "utils/*": ["src/utils/*"],
-      "extensionProps/components": ["src/types/extensionProps/componentsTypes"],
-      "extensionProps/common": ["src/types/extensionProps/common"],
-      "extensionProps/utils": ["src/types/extensionProps/utilsTypes"],
-      "extensionProps/actions": ["src/types/extensionProps/actionsTypes"],
-      "extensionProps/validators": ["src/types/extensionProps/validatorTypes"],
+      "*": [
+        "node_modules/*"
+      ],
+      "analyticsEvents/*": [
+        "src/analyticsEvents/*"
+      ],
+      "components/*": [
+        "src/components/*"
+      ],
+      "constants/*": [
+        "src/constants/*"
+      ],
+      "hooks/*": [
+        "src/hooks/*"
+      ],
+      "icons/*": [
+        "src/icons/*"
+      ],
+      "messages/*": [
+        "src/messages/*"
+      ],
+      "types/*": [
+        "src/types/*"
+      ],
+      "utils/*": [
+        "src/utils/*"
+      ],
+      "extensionProps/*": [
+        "src/types/extensionProps/*"
+      ]
     },
-    "typeRoots": ["node_modules/@types"],
+    "typeRoots": [
+      "node_modules/@types"
+    ],
     "outDir": "build/types",
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -36,6 +58,12 @@
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*", "src/**/*.d.ts"],
-  "exclude": ["node_modules", "build"]
+  "include": [
+    "src/**/*",
+    "src/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "build"
+  ]
 }

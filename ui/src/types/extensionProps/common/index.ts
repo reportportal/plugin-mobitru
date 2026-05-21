@@ -94,3 +94,9 @@ export interface OnSubmit {
     metaData: { fields: Metadata; checkedFieldsIds: { key: string; value: any }[] }
   ): void;
 }
+
+export interface RpAttribute {
+  value: string;
+  key?: string;
+  system?: boolean;
+}

@@ -6,6 +6,7 @@ import simpleImportSort from "eslint-plugin-simple-import-sort";
 import prettierPlugin from "eslint-plugin-prettier";
 import prettierConfig from "eslint-config-prettier";
 import { fixupPluginRules, fixupConfigRules } from "@eslint/compat";
+import { createTypeScriptImportResolver } from "eslint-import-resolver-typescript";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import js from "@eslint/js";
@@ -56,6 +57,11 @@ export default tseslint.config(
         },
 
         settings: {
+            "import-x/resolver-next": [
+                createTypeScriptImportResolver({
+                    project: path.join(__dirname, "tsconfig.json"),
+                }),
+            ],
             "import-x/resolver": {
                 webpack: { config: path.join(__dirname, "webpack.config.js") },
             },
