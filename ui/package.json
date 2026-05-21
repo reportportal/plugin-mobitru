@@ -12,6 +12,7 @@
     "lint": "npm run type-check && npm run eslint && npm run stylelint",
     "format": "npm run eslint -- --fix",
     "format:scss": "npm run stylelint -- --fix",
+    "prepare": "cd .. && husky install",
     "precommit": "lint-staged",
     "postcommit": "git update-index --again"
   },
