@@ -12,8 +12,8 @@
     "lint": "npm run type-check && npm run eslint && npm run stylelint",
     "format": "npm run eslint -- --fix",
     "format:scss": "npm run stylelint -- --fix",
-    "precommit": "lint-staged",
-    "postcommit": "git update-index --again"
+    "prepare": "cd .. && husky install",
+    "precommit": "lint-staged"
   },
   "author": "",
   "license": "Apache-2.0",
@@ -78,10 +78,7 @@
     "npm": ">=10.2.4"
   },
   "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --fix",
-      "git add"
-    ],
+    "*.{ts,tsx}": ["eslint --fix"],
     "*.scss": [
       "stylelint --fix",
       "prettier --write"
