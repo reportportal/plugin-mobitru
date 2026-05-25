@@ -148,6 +148,7 @@ const config = {
       patterns: [
         { from: path.resolve(__dirname, './src/metadata.json') },
         { from: path.resolve(__dirname, './src/plugin-icon.svg') },
+        { from: path.resolve(__dirname, 'node_modules/plyr/dist/plyr.svg'), to: 'plyr.svg' },
       ],
     }),
   ],
