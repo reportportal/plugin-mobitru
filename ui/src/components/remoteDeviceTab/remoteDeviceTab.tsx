@@ -16,12 +16,13 @@
 
 import { BubblesLoader, SystemMessage } from '@reportportal/ui-kit';
 import classNames from 'classnames/bind';
+import { PLUGIN_NAME } from 'constants/common';
 import { RpAttribute } from 'extensionProps/common';
-import { ExtensionPropsContext } from 'hooks/useExtensionProps';
+import { ExtensionPropsContext, useExtensionProps } from 'hooks/useExtensionProps';
 import { useMobitruVideo } from 'hooks/useMobitruVideo';
 import type { PlyrOptions, PlyrSource } from 'plyr-react';
 import { Plyr } from 'plyr-react';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { defineMessages, useIntl } from 'react-intl';
 import type { ExtensionProps } from 'types/extensionProps';
 
@@ -29,7 +30,7 @@ import styles from './remoteDeviceTab.scss';
 
 const cx = classNames.bind(styles);
 
-const PLAYER_OPTIONS: PlyrOptions = {
+const BASE_PLAYER_OPTIONS: Omit<PlyrOptions, 'iconUrl'> = {
   controls: [
     'play-large',
     'progress',
@@ -75,6 +76,17 @@ interface LogTabProps {
 const RemoteDeviceTabInner = ({ logItem }: LogTabProps) => {
   const { formatMessage } = useIntl();
   const { videoSrc, loading } = useMobitruVideo(logItem.id);
+  const {
+    utils: { URLS },
+  } = useExtensionProps();
+
+  const playerOptions = useMemo(
+    (): PlyrOptions => ({
+      ...BASE_PLAYER_OPTIONS,
+      iconUrl: URLS.pluginPublicFile(PLUGIN_NAME, 'plyr.svg'),
+    }),
+    [URLS]
+  );
 
   const playerSource: PlyrSource = {
     type: 'video',
@@ -89,7 +101,7 @@ const RemoteDeviceTabInner = ({ logItem }: LogTabProps) => {
   const getVideoBlock = () =>
     videoSrc ? (
       <div className={cx('video-player')}>
-        <Plyr options={PLAYER_OPTIONS} playsInline source={playerSource} />
+        <Plyr options={playerOptions} playsInline source={playerSource} />
       </div>
     ) : (
       <div className={cx('empty')}>
@@ -109,7 +121,7 @@ const RemoteDeviceTabInner = ({ logItem }: LogTabProps) => {
   );
 };
 
-const RemoteDeviceTab = ({ logItem, ...extensionProps }: ExtensionProps & { logItem: LogItem }) => (
+const RemoteDeviceTab = ({ logItem, ...extensionProps }: ExtensionProps & LogTabProps) => (
   <ExtensionPropsContext.Provider value={extensionProps}>
     <RemoteDeviceTabInner logItem={logItem} />
   </ExtensionPropsContext.Provider>

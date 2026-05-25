@@ -10,17 +10,64 @@ Install the dependencies: `npm install`
 Run in dev mode:
 ```bash
 npm run dev # Run webpack in dev watch mode
-npm run start # Serve built files
+npm run start # Serve built files from http://localhost:9090
 ```
 
-_Available only from RP v24.1_: use
-```javascript
-window.RP.overrideExtension(pluginName, url);
-```
-function call in browser to override the plugin UI assets in favor of your local development changes, f.e.
-```javascript
-window.RP.overrideExtension('mobitru', 'http://localhost:9090');
-```
+### Local development setup
+
+1. **Start the plugin dev server**:
+   ```bash
+   cd ui
+   npm run dev    # Watch mode: rebuild on file changes
+   npm run start  # Serve built assets on :9090
+   ```
+   
+   The dev server (`ui/devServer.js`) hosts:
+   - `remoteEntity.js` (federated entry point)
+   - Static assets: `plyr.svg`, `metadata.json`, etc.
+   - All files copied to `build/public/` by webpack
+
+2. **Point ReportPortal UI to your local plugin** (RP v24.1+):
+   ```javascript
+   // In browser console on http://localhost:3000
+   window.RP.overrideExtension('mobitru', 'http://localhost:9090');
+   ```
+   This tells `service-ui` to load `remoteEntity.js` and other plugin assets from `:9090` instead of the backend API.
+
+3. **(Optional) Proxy plugin requests through service-ui**:
+   
+   If you need `service-ui` webpack dev server to proxy plugin file requests (e.g., for CORS or complex setups), add to `service-ui/app/.env`:
+   ```
+   PROXY_PATH=http://your_api_server:8080/
+   ```
+   and extend `service-ui/app/webpack/dev.config.js` proxy config:
+   ```javascript
+   proxy: [
+     {
+       context: ['/composite', '/api/'],
+       target: process.env.PROXY_PATH,
+       // ...
+     },
+     // Add plugin dev proxy:
+     {
+       context: ['/api/v1/plugin/public/mobitru/file/'],
+       target: 'http://localhost:9090',
+       pathRewrite: { '^/api/v1/plugin/public/mobitru/file/': '/' },
+       changeOrigin: true,
+     },
+   ],
+   ```
+   
+   **Note:** Most setups work fine with `window.RP.overrideExtension` alone — the browser fetches plugin assets directly from `:9090` (CORS headers are set in `devServer.js`).
+
+### How static assets are loaded
+
+- `webpack.config.js` → `CopyPlugin` copies files (e.g., `plyr.svg`, `metadata.json`) to `build/public/`.
+- At runtime, plugin code uses `URLS.pluginPublicFile(pluginName, fileName)` from `extensionProps` to build URLs:
+  - **Dev** (with `window.RP.overrideExtension`): `http://localhost:9090/plyr.svg`
+  - **Prod**: `../api/v1/plugin/public/mobitru/file/plyr.svg`
+
+Example: the video player's Plyr icon sprite (`plyr.svg`) is loaded this way in `remoteDeviceTab.tsx`.
 
 Build the UI source code: `npm run build`
 
