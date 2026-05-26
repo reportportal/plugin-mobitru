@@ -15,15 +15,17 @@
  */
 
 import { BubblesLoader, SystemMessage } from '@reportportal/ui-kit';
+import { LOG_PAGE_EVENTS } from 'analyticsEvents/logPageEvents';
 import classNames from 'classnames/bind';
 import { PLUGIN_NAME } from 'constants/common';
 import { RpAttribute } from 'extensionProps/common';
 import { ExtensionPropsContext, useExtensionProps } from 'hooks/useExtensionProps';
 import { useMobitruVideo } from 'hooks/useMobitruVideo';
-import type { PlyrOptions, PlyrSource } from 'plyr-react';
+import type { APITypes, PlyrInstance, PlyrOptions, PlyrSource } from 'plyr-react';
 import { Plyr } from 'plyr-react';
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { defineMessages, useIntl } from 'react-intl';
+import { useTracking } from 'react-tracking';
 import type { ExtensionProps } from 'types/extensionProps';
 
 import styles from './remoteDeviceTab.scss';
@@ -75,10 +77,42 @@ interface LogTabProps {
 
 const RemoteDeviceTabInner = ({ logItem }: LogTabProps) => {
   const { formatMessage } = useIntl();
+  const { trackEvent } = useTracking();
+  const plyrInstanceRef = useRef<PlyrInstance | null>(null);
   const { videoSrc, loading } = useMobitruVideo(logItem.id);
   const {
     utils: { URLS },
   } = useExtensionProps();
+
+  const handlePlayVideo = useCallback(() => {
+    trackEvent(LOG_PAGE_EVENTS.PLAY_MOBITRU_VIDEO);
+  }, [trackEvent]);
+
+  const setPlayerRef = useCallback(
+    (api: APITypes | null) => {
+      if (plyrInstanceRef.current) {
+        plyrInstanceRef.current.off('play', handlePlayVideo);
+        plyrInstanceRef.current = null;
+      }
+
+      const player = api?.plyr;
+
+      if (player && typeof player.on === 'function') {
+        player.on('play', handlePlayVideo);
+        plyrInstanceRef.current = player;
+      }
+    },
+    [handlePlayVideo]
+  );
+
+  useEffect(
+    () => () => {
+      if (plyrInstanceRef.current) {
+        plyrInstanceRef.current.off('play', handlePlayVideo);
+      }
+    },
+    [handlePlayVideo]
+  );
 
   const playerOptions = useMemo(
     (): PlyrOptions => ({
@@ -101,7 +135,7 @@ const RemoteDeviceTabInner = ({ logItem }: LogTabProps) => {
   const getVideoBlock = () =>
     videoSrc ? (
       <div className={cx('video-player')}>
-        <Plyr options={playerOptions} playsInline source={playerSource} />
+        <Plyr ref={setPlayerRef} options={playerOptions} playsInline source={playerSource} />
       </div>
     ) : (
       <div className={cx('empty')}>

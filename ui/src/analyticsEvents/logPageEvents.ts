@@ -14,23 +14,13 @@
  * limitations under the License.
  */
 
-declare module '*.scss' {
-  const content: { [className: string]: string };
-  export = content;
-}
+import { getBasicClickEventParameters } from './utils';
 
-declare module '*.svg' {
-  const content: string;
-  export default content;
-}
+const LOG_PAGE = 'log';
 
-declare module '*.png' {
-  const content: string;
-  export default content;
-}
-
-declare module 'react-tracking' {
-  export function useTracking(): {
-    trackEvent: (data: Record<string, unknown>) => void;
-  };
-}
+export const LOG_PAGE_EVENTS = {
+  PLAY_MOBITRU_VIDEO: {
+    ...getBasicClickEventParameters(LOG_PAGE),
+    element_name: 'play_video_mobitru',
+  },
+};

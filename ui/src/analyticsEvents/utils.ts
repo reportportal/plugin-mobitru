@@ -14,23 +14,8 @@
  * limitations under the License.
  */
 
-declare module '*.scss' {
-  const content: { [className: string]: string };
-  export = content;
-}
-
-declare module '*.svg' {
-  const content: string;
-  export default content;
-}
-
-declare module '*.png' {
-  const content: string;
-  export default content;
-}
-
-declare module 'react-tracking' {
-  export function useTracking(): {
-    trackEvent: (data: Record<string, unknown>) => void;
-  };
-}
+export const getBasicClickEventParameters = (category: string) => ({
+  category,
+  action: 'click',
+  place: category,
+});
