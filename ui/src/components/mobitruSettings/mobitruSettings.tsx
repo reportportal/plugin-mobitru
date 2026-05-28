@@ -43,7 +43,6 @@ export const MobitruSettings = ({
   const params = data.integrationParameters as unknown as MobitruIntegrationParameters;
 
   const authFieldsConfig = [
-    { value: params.url ?? '', message: formatMessage(messages.url) },
     { value: params.apiKey ? API_KEY_MASK : '', message: formatMessage(messages.apiKey) },
     { value: params.billingUnit ?? '', message: formatMessage(messages.billingUnit) },
   ];

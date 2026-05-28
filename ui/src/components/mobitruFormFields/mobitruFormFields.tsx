@@ -55,22 +55,6 @@ export const MobitruFormFields = ({
   const { FieldElement, FieldErrorHint, FieldText } = components;
   const { requiredField } = validators;
 
-  const validateHttpsUrl = useCallback(
-    (value: string) => {
-      if (!value) return undefined;
-      try {
-        const url = new URL(value);
-        if (url.protocol !== 'https:') {
-          return formatMessage(messages.invalidHttpsUrl);
-        }
-      } catch {
-        return formatMessage(messages.invalidUrl);
-      }
-      return undefined;
-    },
-    [formatMessage]
-  );
-
   const initialDataRef = useRef(initialData);
   initialDataRef.current = initialData;
 
@@ -104,16 +88,6 @@ export const MobitruFormFields = ({
 
   return (
     <div>
-      <FieldElement
-        name="url"
-        label={formatMessage(messages.url)}
-        isRequired
-        validate={[requiredField, validateHttpsUrl]}
-      >
-        <FieldErrorHint provideHint={false}>
-          <FieldText disabled={disabled} defaultWidth={false} />
-        </FieldErrorHint>
-      </FieldElement>
       <FieldElement
         name="apiKey"
         label={formatMessage(messages.apiKey)}

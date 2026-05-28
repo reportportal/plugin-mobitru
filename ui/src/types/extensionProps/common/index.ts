@@ -45,7 +45,6 @@ export interface IntegrationFormFieldsInterface {
 }
 
 export interface MobitruIntegrationParameters {
-  url?: string;
   apiKey?: string;
   billingUnit?: string;
 }
