@@ -17,24 +17,29 @@
 package com.epam.reportportal.mobitru.client;
 
 import com.epam.reportportal.mobitru.model.IntegrationProperties;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import lombok.Getter;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestTemplate;
 
+@Getter
 public class RestClientBuilder {
 
-  private final BasicTextEncryptor textEncryptor;
+  private final RestTemplate restTemplate = new RestTemplateBuilder().build();
 
   public RestClientBuilder(BasicTextEncryptor textEncryptor) {
-    this.textEncryptor = textEncryptor;
   }
 
-  public RestTemplate buildRestTemplate(IntegrationProperties sp) {
-    String apiKey = sp.getApiKey();
-    return new RestTemplateBuilder()
-        .rootUri(sp.getUrl())
-        .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
-        .build();
+  public String bearerAuthHeader(IntegrationProperties sp) {
+    return "Bearer " + sp.getApiKey();
+  }
+
+  public String basicAuthHeader(IntegrationProperties sp) {
+    String credentials = sp.getBillingUnit() + ":" + sp.getApiKey();
+    String encodedCredentials = Base64.getEncoder()
+        .encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+    return "Basic " + encodedCredentials;
   }
 }

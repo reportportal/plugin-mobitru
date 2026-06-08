@@ -16,11 +16,16 @@
 
 package com.epam.reportportal.mobitru;
 
+import com.epam.reportportal.base.infrastructure.persistence.binary.AttachmentBinaryDataService;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.extension.CommonPluginCommand;
 import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import com.epam.reportportal.mobitru.client.MobitruRecordingClient;
 import com.epam.reportportal.mobitru.client.RestClientBuilder;
 import com.epam.reportportal.mobitru.command.GetDevicesCommand;
+import com.epam.reportportal.mobitru.command.LoadExternalAttachmentCommand;
 import com.epam.reportportal.mobitru.command.TestConnectionCommand;
 import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
@@ -48,12 +53,24 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
       this::getCommands);
 
   private final Supplier<RestClientBuilder> restClientSupplier;
+  private final Supplier<MobitruRecordingClient> recordingClientSupplier;
 
   @Autowired
   private BasicTextEncryptor basicEncryptor;
 
+  @Autowired
+  private AttachmentBinaryDataService attachmentBinaryDataService;
+
+  @Autowired
+  private LogRepository logRepository;
+
+  @Autowired
+  private LaunchRepository launchRepository;
+
   public MobitruExtension() {
     restClientSupplier = new MemoizingSupplier<>(() -> new RestClientBuilder(basicEncryptor));
+    recordingClientSupplier = new MemoizingSupplier<>(
+        () -> new MobitruRecordingClient(restClientSupplier.get()));
   }
 
   @Override
@@ -66,12 +83,12 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
   }
 
   @Override
-  public CommonPluginCommand getCommonCommand(String commandName) {
+  public CommonPluginCommand<?> getCommonCommand(String commandName) {
     return null;
   }
 
   @Override
-  public PluginCommand getIntegrationCommand(String commandName) {
+  public PluginCommand<?> getIntegrationCommand(String commandName) {
     return pluginCommandMapping.get().get(commandName);
   }
 
@@ -79,6 +96,9 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
     return ImmutableMap.<String, PluginCommand<?>>builder()
         .put("testConnection", new TestConnectionCommand(restClientSupplier.get()))
         .put("getDevices", new GetDevicesCommand(restClientSupplier.get()))
+        .put(LoadExternalAttachmentCommand.COMMAND_NAME,
+            new LoadExternalAttachmentCommand(recordingClientSupplier.get(), logRepository,
+                launchRepository, attachmentBinaryDataService))
         .build();
   }
 }

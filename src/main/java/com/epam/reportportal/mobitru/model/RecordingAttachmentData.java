@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 EPAM Systems
+ * Copyright 2026 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,12 @@
 
 package com.epam.reportportal.mobitru.model;
 
-import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
-
 /**
- * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
+ * Downloaded Mobitru recording payload with the metadata required to persist it as an attachment.
+ *
+ * @param fileName    user-visible file name
+ * @param contentType MIME type reported by Mobitru
+ * @param content     binary file content
  */
-public enum IntegrationParametersNames {
-
-  API_KEY("apiKey"),
-  BILLING_UNIT("billingUnit");
-
-  private final String name;
-
-  IntegrationParametersNames(String name) {
-    this.name = name;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public String getParam(IntegrationParams params) {
-    return params.getParams().get(this.name).toString();
-  }
-
+public record RecordingAttachmentData(String fileName, String contentType, byte[] content) {
 }
