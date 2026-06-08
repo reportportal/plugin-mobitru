@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.mobitru.command;
 
+import static com.epam.reportportal.mobitru.model.Constants.MOBITRU_BASE_URL;
 import static com.epam.reportportal.mobitru.model.Constants.TEST_CONNECTION;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
@@ -26,6 +27,8 @@ import com.epam.reportportal.mobitru.model.IntegrationProperties;
 import com.epam.reportportal.mobitru.utils.ValidationUtils;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -47,12 +50,14 @@ public class TestConnectionCommand implements
   public Boolean executeCommand(Integration integration, Map params) {
     ValidationUtils.validateIntegrationParams(integration.getParams());
     IntegrationProperties sp = new IntegrationProperties(integration.getParams().getParams());
-    RestTemplate restTemplate = restClient.buildRestTemplate(sp);
+    RestTemplate restTemplate = restClient.getRestTemplate();
 
     try {
-      String assetsUrl = String.format(TEST_CONNECTION, sp.getBillingUnit());
-      ResponseEntity<String> forObject = restTemplate.exchange(assetsUrl, HttpMethod.GET, null,
-          String.class);
+      String assetsUrl = MOBITRU_BASE_URL + String.format(TEST_CONNECTION, sp.getBillingUnit());
+      HttpHeaders headers = new HttpHeaders();
+      headers.set(HttpHeaders.AUTHORIZATION, restClient.bearerAuthHeader(sp));
+      ResponseEntity<String> forObject = restTemplate.exchange(assetsUrl, HttpMethod.GET,
+          new HttpEntity<>(headers), String.class);
       if (forObject.getStatusCode().is2xxSuccessful()) {
         return true;
       } else {

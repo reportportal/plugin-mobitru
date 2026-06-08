@@ -25,6 +25,7 @@ import com.epam.reportportal.mobitru.model.RecordingAttachmentData;
 import com.sun.net.httpserver.HttpServer;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -51,8 +52,8 @@ class MobitruRecordingClientTest {
     server.start();
 
     try {
-      RecordingAttachmentData result = new MobitruRecordingClient(new RestClientBuilder(null))
-          .downloadRecording(integration(server), "rec-1");
+      RecordingAttachmentData result = client(server).downloadRecording(integration(), "rec-1",
+          "MBID");
 
       assertEquals("/billing/unit/demo-slug/automation/api/recording/rec-1", requestPath.get());
       assertEquals("Bearer token-123", authorizationHeader.get());
@@ -77,8 +78,7 @@ class MobitruRecordingClientTest {
     server.start();
 
     try {
-      RecordingAttachmentData result = new MobitruRecordingClient(new RestClientBuilder(null))
-          .downloadRecording(integration(server), "rec-2");
+      RecordingAttachmentData result = client(server).downloadRecording(integration(), "rec-2");
 
       assertEquals("rec-2.mp4", result.fileName());
       assertEquals("video/mp4", result.contentType());
@@ -88,10 +88,46 @@ class MobitruRecordingClientTest {
     }
   }
 
-  private Integration integration(HttpServer server) {
+  @Test
+  void downloadsBrowserRecordingUsingBrowserHubEndpoint() throws Exception {
+    byte[] body = "browser-video".getBytes(StandardCharsets.UTF_8);
+    AtomicReference<String> requestPath = new AtomicReference<>();
+    AtomicReference<String> authorizationHeader = new AtomicReference<>();
+    HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+    server.createContext("/recordings/browser-session-1", exchange -> {
+      requestPath.set(exchange.getRequestURI().getPath());
+      authorizationHeader.set(exchange.getRequestHeaders().getFirst("Authorization"));
+      exchange.getResponseHeaders().add("Content-Type", "video/webm");
+      exchange.sendResponseHeaders(200, body.length);
+      exchange.getResponseBody().write(body);
+      exchange.close();
+    });
+    server.start();
+
+    try {
+      RecordingAttachmentData result = client(server).downloadRecording(integration(),
+          "browser-session-1", "BBID");
+
+      assertEquals("/recordings/browser-session-1", requestPath.get());
+      assertEquals("Basic " + Base64.getEncoder()
+          .encodeToString("demo-slug:token-123".getBytes(StandardCharsets.UTF_8)),
+          authorizationHeader.get());
+      assertEquals("browser-session-1.webm", result.fileName());
+      assertEquals("video/webm", result.contentType());
+      assertArrayEquals(body, result.content());
+    } finally {
+      server.stop(0);
+    }
+  }
+
+  private MobitruRecordingClient client(HttpServer server) {
+    String baseUrl = "http://localhost:" + server.getAddress().getPort();
+    return new MobitruRecordingClient(new RestClientBuilder(null), baseUrl, baseUrl);
+  }
+
+  private Integration integration() {
     Integration integration = new Integration();
     Map<String, Object> params = new HashMap<>();
-    params.put("url", "http://localhost:" + server.getAddress().getPort());
     params.put("apiKey", "token-123");
     params.put("billingUnit", "demo-slug");
     integration.setParams(new IntegrationParams(params));

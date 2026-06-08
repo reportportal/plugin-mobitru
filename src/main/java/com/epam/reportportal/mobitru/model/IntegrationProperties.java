@@ -18,7 +18,6 @@ package com.epam.reportportal.mobitru.model;
 
 import static com.epam.reportportal.mobitru.model.IntegrationParametersNames.API_KEY;
 import static com.epam.reportportal.mobitru.model.IntegrationParametersNames.BILLING_UNIT;
-import static com.epam.reportportal.mobitru.model.IntegrationParametersNames.URL;
 
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -30,12 +29,10 @@ import lombok.Setter;
 @Setter
 public class IntegrationProperties {
 
-  private final String url;
   private final String apiKey;
   private final String billingUnit;
 
   public IntegrationProperties(Map<String, Object> params) {
-    this.url = (String) params.get(URL.getName());
     this.apiKey = (String) params.get(API_KEY.getName());
     this.billingUnit = (String) params.get(BILLING_UNIT.getName());
   }

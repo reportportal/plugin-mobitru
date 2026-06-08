@@ -37,6 +37,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -53,12 +54,14 @@ class LoadExternalAttachmentCommandTest {
     Launch launch = new Launch();
     launch.setId(3L);
     launch.setUuid("launch-uuid");
+    AtomicReference<String> attachmentAttributeKey = new AtomicReference<>();
 
     LoadExternalAttachmentCommand command = new LoadExternalAttachmentCommand(
         new MobitruRecordingClient(null) {
           @Override
           public RecordingAttachmentData downloadRecording(Integration integration,
-              String attachmentExternalId) {
+              String attachmentExternalId, String attributeKey) {
+            attachmentAttributeKey.set(attributeKey);
             return new RecordingAttachmentData("session.mp4", "video/mp4", "video".getBytes());
           }
         },
@@ -81,10 +84,11 @@ class LoadExternalAttachmentCommandTest {
     assertEquals("launch-uuid", attachmentService.savedMetaInfo.getLaunchUuid());
     assertEquals("log-uuid", attachmentService.savedMetaInfo.getLogUuid());
     assertEquals("session.mp4", attachmentService.savedMetaInfo.getFileName());
+    assertEquals("BBID", attachmentAttributeKey.get());
   }
 
   @Test
-  void skipsWhenLogAlreadyHasAttachment() {
+  void doNotSkipsWhenLogAlreadyHasAttachment() {
     AttachmentBinaryDataServiceStub attachmentService = new AttachmentBinaryDataServiceStub();
     Log log = new Log();
     log.setId(11L);
@@ -99,7 +103,7 @@ class LoadExternalAttachmentCommandTest {
         new MobitruRecordingClient(null) {
           @Override
           public RecordingAttachmentData downloadRecording(Integration integration,
-              String attachmentExternalId) {
+              String attachmentExternalId, String attributeKey) {
             return new RecordingAttachmentData("session.mp4", "video/mp4", "video".getBytes());
           }
         },
@@ -110,7 +114,7 @@ class LoadExternalAttachmentCommandTest {
 
     command.executeCommand(new Integration(), params());
 
-    assertEquals(0, attachmentService.saveCalls);
+    assertEquals(1, attachmentService.saveCalls);
   }
 
   private Map<String, Object> params() {
@@ -120,6 +124,7 @@ class LoadExternalAttachmentCommandTest {
     params.put(LoadExternalAttachmentCommand.LAUNCH_ID_PARAM, 3L);
     params.put(LoadExternalAttachmentCommand.TEST_ITEM_ID_PARAM, 5L);
     params.put(LoadExternalAttachmentCommand.ATTACHMENT_EXTERNAL_ID_PARAM, "rec-1");
+    params.put(LoadExternalAttachmentCommand.ATTACHMENT_ATTRIBUTE_KEY_PARAM, "BBID");
     return params;
   }
 

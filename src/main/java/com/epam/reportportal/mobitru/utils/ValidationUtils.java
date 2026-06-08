@@ -19,7 +19,6 @@ package com.epam.reportportal.mobitru.utils;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.mobitru.model.IntegrationParametersNames.API_KEY;
 import static com.epam.reportportal.mobitru.model.IntegrationParametersNames.BILLING_UNIT;
-import static com.epam.reportportal.mobitru.model.IntegrationParametersNames.URL;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.Predicates;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
@@ -39,9 +38,6 @@ public class ValidationUtils {
         ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Integration parameters shouldn't be empty");
 
     Map<String, Object> params = integrationParams.getParams();
-    expect(params.get(URL.getName()), Predicates.notNull()).verify(
-        ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, URL + IS_NOT_SPECIFIED);
-
     expect(params.get(API_KEY.getName()), Predicates.notNull()).verify(
         ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, API_KEY + IS_NOT_SPECIFIED);
 

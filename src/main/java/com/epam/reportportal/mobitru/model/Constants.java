@@ -20,10 +20,13 @@ package com.epam.reportportal.mobitru.model;
 public class Constants {
 
   public static final String PLATFORM = "platform";
+  public static final String MOBITRU_BASE_URL = "https://app.mobitru.com";
+  public static final String BROWSERHUB_BASE_URL = "https://browserhub-us.mobitru.com";
 
   // endpoints
   public static final String TEST_CONNECTION = "/billing/unit/%s/automation/api/device/ios";
   public static final String GET_DEVICES = "/billing/unit/%s/automation/api/device/%s";
   public static final String GET_RECORDING = "/billing/unit/%s/automation/api/recording/%s";
+  public static final String GET_BROWSER_RECORDING = "/recordings/%s";
 
 }

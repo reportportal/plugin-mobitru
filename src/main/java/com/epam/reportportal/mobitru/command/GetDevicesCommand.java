@@ -18,6 +18,7 @@ package com.epam.reportportal.mobitru.command;
 
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.mobitru.model.Constants.GET_DEVICES;
+import static com.epam.reportportal.mobitru.model.Constants.MOBITRU_BASE_URL;
 import static com.epam.reportportal.mobitru.model.Constants.PLATFORM;
 
 import com.epam.reportportal.base.infrastructure.persistence.commons.Predicates;
@@ -36,6 +37,8 @@ import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -55,30 +58,35 @@ public class GetDevicesCommand implements PluginCommand<List<DeviceInfo>> {
   }
 
   @Override
-  public List<DeviceInfo> executeCommand(Integration integration, Map params) {
+  public List<DeviceInfo> executeCommand(Integration integration, Map<String, Object> params) {
     ValidationUtils.validateIntegrationParams(integration.getParams());
     String platform = resolvePlatform(params);
 
     IntegrationProperties sp = new IntegrationProperties(integration.getParams().getParams());
-    RestTemplate restTemplate = restClient.buildRestTemplate(sp);
+    RestTemplate restTemplate = restClient.getRestTemplate();
 
     try {
-      String devicesUrl = String.format(GET_DEVICES, sp.getBillingUnit(), platform);
+      String devicesUrl = MOBITRU_BASE_URL + String.format(GET_DEVICES, sp.getBillingUnit(),
+          platform);
+
+      HttpHeaders headers = new HttpHeaders();
+      headers.set(HttpHeaders.AUTHORIZATION, restClient.bearerAuthHeader(sp));
+
       ResponseEntity<List<DeviceInfo>> response = restTemplate.exchange(
           devicesUrl,
           HttpMethod.GET,
-          null,
+          new HttpEntity<>(headers),
           new ParameterizedTypeReference<>() {
           }
       );
+
       if (response.getStatusCode().is2xxSuccessful()) {
         List<DeviceInfo> body = response.getBody();
         return body != null ? body : Collections.emptyList();
       }
+
       throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
           "Failed to retrieve devices.");
-    } catch (ReportPortalException e) {
-      throw e;
     } catch (Exception e) {
       log.error("Failed to retrieve devices for platform '{}'", platform, e);
       throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
@@ -94,10 +102,12 @@ public class GetDevicesCommand implements PluginCommand<List<DeviceInfo>> {
   private String resolvePlatform(Map<String, Object> params) {
     expect(params, Predicates.notNull()).verify(
         ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, PLATFORM + " parameter should be provided");
+
     Object raw = params.get(PLATFORM);
     expect(raw, Predicates.notNull()).verify(
         ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, PLATFORM + " parameter should be provided");
     String platform = raw.toString().toLowerCase(Locale.ROOT);
+
     if (!SUPPORTED_PLATFORMS.contains(platform)) {
       throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
           "Unsupported platform '" + raw + "'. Supported: " + SUPPORTED_PLATFORMS);

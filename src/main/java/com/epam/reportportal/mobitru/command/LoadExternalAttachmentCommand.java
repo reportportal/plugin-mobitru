@@ -48,6 +48,7 @@ public class LoadExternalAttachmentCommand implements PluginCommand<Void> {
   public static final String LAUNCH_ID_PARAM = "launchId";
   public static final String TEST_ITEM_ID_PARAM = "testItemId";
   public static final String ATTACHMENT_EXTERNAL_ID_PARAM = "attachmentExternalId";
+  public static final String ATTACHMENT_ATTRIBUTE_KEY_PARAM = "attachmentAttributeKey";
 
   private static final String DEFAULT_FILE_NAME = "mobitru-recording";
 
@@ -69,63 +70,58 @@ public class LoadExternalAttachmentCommand implements PluginCommand<Void> {
   public Void executeCommand(Integration integration, Map<String, Object> params) {
     Long logId = resolveLong(params, LOG_ID_PARAM);
     String attachmentExternalId = resolveString(params, ATTACHMENT_EXTERNAL_ID_PARAM);
+
     if (logId == null || StringUtils.isBlank(attachmentExternalId)) {
       log.warn("Skipping Mobitru attachment load: command params are incomplete");
       return null;
     }
 
-    Log logEntity = logRepository.findById(logId).orElse(null);
-    if (logEntity == null) {
-      log.warn("Skipping Mobitru attachment load for log {}: log was not found", logId);
-      return null;
-    }
-    if (logEntity.getAttachment() != null) {
-      log.debug("Skipping Mobitru attachment load for log {}: attachment already exists", logId);
+    var rpLog = logRepository.findById(logId);
+    if (rpLog.isEmpty()) {
+      log.warn("Skipping Mobitru attachment load for rpLog {}: rpLog was not found", logId);
       return null;
     }
 
+    Log logEntity = rpLog.get();
+
     Long projectId = resolveProjectId(params, logEntity);
     if (projectId == null) {
-      log.warn("Skipping Mobitru attachment load for log {}: projectId could not be resolved",
+      log.warn("Skipping Mobitru attachment load for rpLog {}: projectId could not be resolved",
           logId);
       return null;
     }
 
     Launch launch = resolveLaunch(params, logEntity).orElse(null);
     if (launch == null || StringUtils.isBlank(launch.getUuid())) {
-      log.warn("Skipping Mobitru attachment load for log {}: launch could not be resolved", logId);
-      return null;
-    }
-    if (StringUtils.isBlank(logEntity.getUuid())) {
-      log.warn("Skipping Mobitru attachment load for log {}: log UUID is missing", logId);
+      log.warn("Skipping Mobitru attachment load for rpLog {}: launch could not be resolved",
+          logId);
       return null;
     }
 
+    String attachmentAttributeKey = resolveString(params, ATTACHMENT_ATTRIBUTE_KEY_PARAM);
+
     RecordingAttachmentData attachmentData = recordingClient.downloadRecording(integration,
-        attachmentExternalId);
+        attachmentExternalId, attachmentAttributeKey);
+
     byte[] content = attachmentData.content();
     if (content == null || content.length == 0) {
-      log.warn("Skipping Mobitru attachment load for log {}: downloaded file is empty", logId);
+      log.warn("Skipping Mobitru attachment load for rpLog {}: downloaded file is empty", logId);
       return null;
     }
 
     String fileName = resolveFileName(attachmentData, attachmentExternalId);
-    String contentType = StringUtils.defaultIfBlank(attachmentData.contentType(),
-        MediaType.APPLICATION_OCTET_STREAM_VALUE);
+    String contentType = Optional.ofNullable(attachmentData.contentType())
+        .orElse(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+
     attachmentBinaryDataService.saveFileAndAttachToLog(
         new ByteArrayMultipartFile(resolveMultipartFieldName(fileName), fileName, contentType,
             content),
-        AttachmentMetaInfo.builder()
-            .withProjectId(projectId)
-            .withLaunchId(launch.getId())
-            .withItemId(resolveTestItemId(params, logEntity))
-            .withLogId(logEntity.getId())
-            .withLaunchUuid(launch.getUuid())
-            .withLogUuid(logEntity.getUuid())
+        AttachmentMetaInfo.builder().withProjectId(projectId).withLaunchId(launch.getId())
+            .withItemId(resolveTestItemId(params, logEntity)).withLogId(logEntity.getId())
+            .withLaunchUuid(launch.getUuid()).withLogUuid(logEntity.getUuid())
             .withFileName(fileName)
             .withCreationDate(Optional.ofNullable(logEntity.getLogTime()).orElse(Instant.now()))
-            .build()
-    );
+            .build());
     return null;
   }
 
@@ -194,7 +190,7 @@ public class LoadExternalAttachmentCommand implements PluginCommand<Void> {
 
   private String resolveFileName(RecordingAttachmentData attachmentData,
       String attachmentExternalId) {
-    return StringUtils.defaultIfBlank(attachmentData.fileName(), attachmentExternalId);
+    return Optional.ofNullable(attachmentData.fileName()).orElse(attachmentExternalId);
   }
 
   private String resolveMultipartFieldName(String fileName) {

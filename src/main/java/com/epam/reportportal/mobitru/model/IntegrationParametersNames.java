@@ -23,7 +23,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.integration.
  */
 public enum IntegrationParametersNames {
 
-  URL("url"),
   API_KEY("apiKey"),
   BILLING_UNIT("billingUnit");
 
