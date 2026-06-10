@@ -19,9 +19,12 @@ package com.epam.reportportal.mobitru.command;
 import static com.epam.reportportal.mobitru.model.Constants.MOBITRU_BASE_URL;
 import static com.epam.reportportal.mobitru.model.Constants.TEST_CONNECTION;
 
+import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.extension.PluginCommand;
+import com.epam.reportportal.extension.command.ExtensionCommand;
 import com.epam.reportportal.mobitru.client.RestClientBuilder;
 import com.epam.reportportal.mobitru.model.IntegrationProperties;
 import com.epam.reportportal.mobitru.utils.ValidationUtils;
@@ -37,8 +40,7 @@ import org.springframework.web.client.RestTemplate;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Slf4j
-public class TestConnectionCommand implements
-    com.epam.reportportal.extension.PluginCommand<Boolean> {
+public class TestConnectionCommand implements PluginCommand<Boolean>, ExtensionCommand<Boolean> {
 
   private final RestClientBuilder restClient;
 
@@ -47,7 +49,7 @@ public class TestConnectionCommand implements
   }
 
   @Override
-  public Boolean executeCommand(Integration integration, Map params) {
+  public Boolean executeCommand(Integration integration, Map<String, Object> params) {
     ValidationUtils.validateIntegrationParams(integration.getParams());
     IntegrationProperties sp = new IntegrationProperties(integration.getParams().getParams());
     RestTemplate restTemplate = restClient.getRestTemplate();
@@ -69,6 +71,11 @@ public class TestConnectionCommand implements
       throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
           "Connection refused.");
     }
+  }
+
+  @Override
+  public Boolean executeCommand(Integration integration, PluginCommandRQ pluginCommandRq) {
+    return executeCommand(integration, pluginCommandRq.getArguments());
   }
 
   @Override

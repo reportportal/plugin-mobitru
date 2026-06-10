@@ -22,6 +22,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.extension.CommonPluginCommand;
 import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import com.epam.reportportal.extension.command.ExtensionCommand;
 import com.epam.reportportal.mobitru.client.MobitruRecordingClient;
 import com.epam.reportportal.mobitru.client.RestClientBuilder;
 import com.epam.reportportal.mobitru.command.GetDevicesCommand;
@@ -51,6 +52,8 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
 
   private final Supplier<Map<String, PluginCommand<?>>> pluginCommandMapping = new MemoizingSupplier<>(
       this::getCommands);
+  private final Supplier<Map<String, ExtensionCommand<?>>> extensionCommandMapping =
+      new MemoizingSupplier<>(this::getExtensionCommands);
 
   private final Supplier<RestClientBuilder> restClientSupplier;
   private final Supplier<MobitruRecordingClient> recordingClientSupplier;
@@ -92,6 +95,11 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
     return pluginCommandMapping.get().get(commandName);
   }
 
+  @Override
+  public Map<String, ExtensionCommand<?>> getIntegrationExtensionCommands() {
+    return extensionCommandMapping.get();
+  }
+
   private Map<String, PluginCommand<?>> getCommands() {
     return ImmutableMap.<String, PluginCommand<?>>builder()
         .put("testConnection", new TestConnectionCommand(restClientSupplier.get()))
@@ -99,6 +107,12 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
         .put(LoadExternalAttachmentCommand.COMMAND_NAME,
             new LoadExternalAttachmentCommand(recordingClientSupplier.get(), logRepository,
                 launchRepository, attachmentBinaryDataService))
+        .build();
+  }
+
+  private Map<String, ExtensionCommand<?>> getExtensionCommands() {
+    return ImmutableMap.<String, ExtensionCommand<?>>builder()
+        .put("testConnection", new TestConnectionCommand(restClientSupplier.get()))
         .build();
   }
 }
