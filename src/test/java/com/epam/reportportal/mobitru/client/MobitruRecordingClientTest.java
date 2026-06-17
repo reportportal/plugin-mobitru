@@ -29,9 +29,18 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.junit.jupiter.api.Test;
 
 class MobitruRecordingClientTest {
+
+  private static final BasicTextEncryptor ENCRYPTOR = createEncryptor();
+
+  private static BasicTextEncryptor createEncryptor() {
+    BasicTextEncryptor encryptor = new BasicTextEncryptor();
+    encryptor.setPassword("test-secret");
+    return encryptor;
+  }
 
   @Test
   void downloadsRecordingUsingMobitruEndpointAndHeaders() throws Exception {
@@ -110,7 +119,7 @@ class MobitruRecordingClientTest {
 
       assertEquals("/recordings/browser-session-1", requestPath.get());
       assertEquals("Basic " + Base64.getEncoder()
-          .encodeToString("demo-slug:token-123".getBytes(StandardCharsets.UTF_8)),
+              .encodeToString("demo-slug:token-123".getBytes(StandardCharsets.UTF_8)),
           authorizationHeader.get());
       assertEquals("browser-session-1.webm", result.fileName());
       assertEquals("video/webm", result.contentType());
@@ -122,13 +131,13 @@ class MobitruRecordingClientTest {
 
   private MobitruRecordingClient client(HttpServer server) {
     String baseUrl = "http://localhost:" + server.getAddress().getPort();
-    return new MobitruRecordingClient(new RestClientBuilder(null), baseUrl, baseUrl);
+    return new MobitruRecordingClient(new RestClientBuilder(ENCRYPTOR), baseUrl, baseUrl);
   }
 
   private Integration integration() {
     Integration integration = new Integration();
     Map<String, Object> params = new HashMap<>();
-    params.put("apiKey", "token-123");
+    params.put("apiKey", ENCRYPTOR.encrypt("token-123"));
     params.put("billingUnit", "demo-slug");
     integration.setParams(new IntegrationParams(params));
     return integration;
