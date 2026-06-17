@@ -28,16 +28,18 @@ import org.springframework.web.client.RestTemplate;
 public class RestClientBuilder {
 
   private final RestTemplate restTemplate = new RestTemplateBuilder().build();
+  private final BasicTextEncryptor textEncryptor;
 
   public RestClientBuilder(BasicTextEncryptor textEncryptor) {
+    this.textEncryptor = textEncryptor;
   }
 
   public String bearerAuthHeader(IntegrationProperties sp) {
-    return "Bearer " + sp.getApiKey();
+    return "Bearer " + textEncryptor.decrypt(sp.getApiKey());
   }
 
   public String basicAuthHeader(IntegrationProperties sp) {
-    String credentials = sp.getBillingUnit() + ":" + sp.getApiKey();
+    String credentials = sp.getBillingUnit() + ":" + textEncryptor.decrypt(sp.getApiKey());
     String encodedCredentials = Base64.getEncoder()
         .encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
     return "Basic " + encodedCredentials;
