@@ -19,6 +19,10 @@ package com.epam.reportportal.mobitru;
 import com.epam.reportportal.base.infrastructure.persistence.binary.AttachmentBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.extension.CommonPluginCommand;
 import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
@@ -50,8 +54,6 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
 
   private static final String PLUGIN_NAME = "Mobitru";
 
-  private final Supplier<Map<String, PluginCommand<?>>> pluginCommandMapping = new MemoizingSupplier<>(
-      this::getCommands);
   private final Supplier<Map<String, ExtensionCommand<?>>> extensionCommandMapping =
       new MemoizingSupplier<>(this::getExtensionCommands);
 
@@ -70,6 +72,18 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
   @Autowired
   private LaunchRepository launchRepository;
 
+  @Autowired
+  private ProjectRepository projectRepository;
+
+  @Autowired
+  private OrganizationUserRepository organizationUserRepository;
+
+  @Autowired
+  private OrganizationRepository organizationRepository;
+
+  @Autowired
+  private ProjectUserRepository projectUserRepository;
+
   public MobitruExtension() {
     restClientSupplier = new MemoizingSupplier<>(() -> new RestClientBuilder(basicEncryptor));
     recordingClientSupplier = new MemoizingSupplier<>(
@@ -79,7 +93,7 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
   @Override
   public Map<String, ?> getPluginParams() {
     Map<String, Object> params = new HashMap<>();
-    params.put(ALLOWED_COMMANDS, new ArrayList<>(pluginCommandMapping.get().keySet()));
+    params.put(ALLOWED_COMMANDS, new ArrayList<>(extensionCommandMapping.get().keySet()));
     params.put(DOCUMENTATION_LINK_FIELD, DOCUMENTATION_LINK);
     params.put(NAME_FIELD, PLUGIN_NAME);
     return params;
@@ -92,7 +106,7 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
 
   @Override
   public PluginCommand<?> getIntegrationCommand(String commandName) {
-    return pluginCommandMapping.get().get(commandName);
+    return null;
   }
 
   @Override
@@ -100,19 +114,17 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
     return extensionCommandMapping.get();
   }
 
-  private Map<String, PluginCommand<?>> getCommands() {
-    return ImmutableMap.<String, PluginCommand<?>>builder()
-        .put("testConnection", new TestConnectionCommand(restClientSupplier.get()))
-        .put("getDevices", new GetDevicesCommand(restClientSupplier.get()))
-        .put(LoadExternalAttachmentCommand.COMMAND_NAME,
-            new LoadExternalAttachmentCommand(recordingClientSupplier.get(), logRepository,
-                launchRepository, attachmentBinaryDataService))
-        .build();
-  }
-
   private Map<String, ExtensionCommand<?>> getExtensionCommands() {
     return ImmutableMap.<String, ExtensionCommand<?>>builder()
-        .put("testConnection", new TestConnectionCommand(restClientSupplier.get()))
+        .put("testConnection",
+            new TestConnectionCommand(restClientSupplier.get(), projectRepository,
+                organizationUserRepository, organizationRepository, projectUserRepository))
+        .put("getDevices", new GetDevicesCommand(restClientSupplier.get(), projectRepository,
+            organizationUserRepository, organizationRepository, projectUserRepository))
+        .put(LoadExternalAttachmentCommand.COMMAND_NAME,
+            new LoadExternalAttachmentCommand(recordingClientSupplier.get(), logRepository,
+                launchRepository, attachmentBinaryDataService, projectRepository,
+                organizationUserRepository, organizationRepository, projectUserRepository))
         .build();
   }
 }

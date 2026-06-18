@@ -19,6 +19,7 @@ package com.epam.reportportal.mobitru.command;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.infrastructure.persistence.binary.AttachmentBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.commons.BinaryDataMetaInfo;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
@@ -67,10 +68,11 @@ class LoadExternalAttachmentCommandTest {
         },
         repositoryProxy(LogRepository.class, log),
         repositoryProxy(LaunchRepository.class, launch),
-        attachmentService
+        attachmentService,
+        null, null, null, null
     );
 
-    command.executeCommand(new Integration(), params());
+    command.executeCommand(new Integration(), new PluginCommandRQ(null, params()));
 
     assertEquals(1, attachmentService.saveCalls);
     assertEquals("session", attachmentService.savedFile.getName());
@@ -109,10 +111,11 @@ class LoadExternalAttachmentCommandTest {
         },
         repositoryProxy(LogRepository.class, log),
         repositoryProxy(LaunchRepository.class, launch),
-        attachmentService
+        attachmentService,
+        null, null, null, null
     );
 
-    command.executeCommand(new Integration(), params());
+    command.executeCommand(new Integration(), new PluginCommandRQ(null, params()));
 
     assertEquals(1, attachmentService.saveCalls);
   }
