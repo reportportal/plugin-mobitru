@@ -16,15 +16,20 @@
 
 package com.epam.reportportal.mobitru.command;
 
+import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.infrastructure.persistence.binary.AttachmentBinaryDataService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.AttachmentMetaInfo;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launch;
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.Log;
-import com.epam.reportportal.extension.PluginCommand;
+import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.mobitru.client.MobitruRecordingClient;
 import com.epam.reportportal.mobitru.file.ByteArrayMultipartFile;
 import com.epam.reportportal.mobitru.model.RecordingAttachmentData;
@@ -40,7 +45,7 @@ import org.springframework.http.MediaType;
  * Downloads a Mobitru recording and attaches it to an existing ReportPortal log.
  */
 @Slf4j
-public class LoadExternalAttachmentCommand implements PluginCommand<Void> {
+public class LoadExternalAttachmentCommand extends AbstractExtensionCommand<Void> {
 
   public static final String COMMAND_NAME = "loadExternalAttachment";
   public static final String LOG_ID_PARAM = "logId";
@@ -59,7 +64,11 @@ public class LoadExternalAttachmentCommand implements PluginCommand<Void> {
 
   public LoadExternalAttachmentCommand(MobitruRecordingClient recordingClient,
       LogRepository logRepository, LaunchRepository launchRepository,
-      AttachmentBinaryDataService attachmentBinaryDataService) {
+      AttachmentBinaryDataService attachmentBinaryDataService,
+      ProjectRepository projectRepository, OrganizationUserRepository organizationUserRepository,
+      OrganizationRepository organizationRepository, ProjectUserRepository projectUserRepository) {
+    super(projectRepository, organizationUserRepository, organizationRepository,
+        projectUserRepository);
     this.recordingClient = recordingClient;
     this.logRepository = logRepository;
     this.launchRepository = launchRepository;
@@ -67,7 +76,8 @@ public class LoadExternalAttachmentCommand implements PluginCommand<Void> {
   }
 
   @Override
-  public Void executeCommand(Integration integration, Map<String, Object> params) {
+  public Void executeCommand(Integration integration, PluginCommandRQ pluginCommandRq) {
+    Map<String, Object> params = pluginCommandRq.getArguments();
     Long logId = resolveLong(params, LOG_ID_PARAM);
     String attachmentExternalId = resolveString(params, ATTACHMENT_EXTERNAL_ID_PARAM);
 

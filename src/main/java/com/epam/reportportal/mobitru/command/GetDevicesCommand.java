@@ -21,11 +21,16 @@ import static com.epam.reportportal.mobitru.model.Constants.GET_DEVICES;
 import static com.epam.reportportal.mobitru.model.Constants.MOBITRU_BASE_URL;
 import static com.epam.reportportal.mobitru.model.Constants.PLATFORM;
 
+import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.infrastructure.persistence.commons.Predicates;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import com.epam.reportportal.extension.PluginCommand;
+import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.mobitru.client.RestClientBuilder;
 import com.epam.reportportal.mobitru.model.DeviceInfo;
 import com.epam.reportportal.mobitru.model.IntegrationProperties;
@@ -47,20 +52,24 @@ import org.springframework.web.client.RestTemplate;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Slf4j
-public class GetDevicesCommand implements PluginCommand<List<DeviceInfo>> {
+public class GetDevicesCommand extends AbstractExtensionCommand<List<DeviceInfo>> {
 
   private static final Set<String> SUPPORTED_PLATFORMS = Set.of("ios", "android");
 
   private final RestClientBuilder restClient;
 
-  public GetDevicesCommand(RestClientBuilder restClient) {
+  public GetDevicesCommand(RestClientBuilder restClient, ProjectRepository projectRepository,
+      OrganizationUserRepository organizationUserRepository,
+      OrganizationRepository organizationRepository, ProjectUserRepository projectUserRepository) {
+    super(projectRepository, organizationUserRepository, organizationRepository,
+        projectUserRepository);
     this.restClient = restClient;
   }
 
   @Override
-  public List<DeviceInfo> executeCommand(Integration integration, Map<String, Object> params) {
+  public List<DeviceInfo> executeCommand(Integration integration, PluginCommandRQ pluginCommandRq) {
     ValidationUtils.validateIntegrationParams(integration.getParams());
-    String platform = resolvePlatform(params);
+    String platform = resolvePlatform(pluginCommandRq.getArguments());
 
     IntegrationProperties sp = new IntegrationProperties(integration.getParams().getParams());
     RestTemplate restTemplate = restClient.getRestTemplate();
