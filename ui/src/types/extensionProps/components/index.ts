@@ -91,10 +91,11 @@ interface IntegrationSettings {
   };
   isGlobal: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  formFieldsComponent: ComponentType<any>;
+  formFieldsComponent?: ComponentType<any>;
   formKey?: string;
   isEmptyConfiguration?: boolean;
   preventTestConnection?: boolean;
+  hideInlineForm?: boolean;
 }
 
 export interface IntegrationFormFieldsComponentsInterface {

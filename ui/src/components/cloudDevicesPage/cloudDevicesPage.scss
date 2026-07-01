@@ -82,13 +82,12 @@
   padding: 24px 90px 46px 96px;
 
   @media (max-width: 1200px) {
-   padding: 24px 32px 40px;
+    padding: 24px 32px 40px;
   }
   @media (max-width: 768px) {
     padding: 16px;
   }
 }
-
 
 .device-group {
   margin-bottom: 24px;
@@ -96,7 +95,7 @@
 
 .group-header {
   padding: 6px 0 13px 0;
-  border-bottom: 1px solid #e3e7ec;
+  border-bottom: 1px solid var(--rp-ui-base-e-100);
   margin-bottom: 16px;
 }
 
@@ -132,7 +131,7 @@
   align-items: start;
   padding: 14px 16px;
   background: var(--rp-ui-base-bg-000);
-  border: 1px solid #3743621a;
+  border: 1px solid rgba(55, 67, 98, 0.1);
   border-radius: 8px;
   cursor: pointer;
   text-align: left;
@@ -146,7 +145,7 @@
     }
 
     .device-name {
-      color: #009dbb;
+      color: var(--rp-ui-color-primary-hover);
     }
   }
 }
