@@ -16,10 +16,8 @@
 
 import { IntegrationSettingsInterface, MobitruIntegrationParameters } from 'extensionProps/common';
 import { messages } from 'messages/integration';
-import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
-
-import { createMobitruFormFields } from './createMobitruFormFields';
+import { useDispatch } from 'react-redux';
 
 const API_KEY_MASK = '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022';
 
@@ -31,14 +29,11 @@ export const MobitruSettings = ({
   onUpdate,
   isGlobal,
   components,
-  validators,
-  constants,
   actions,
 }: Props) => {
   const { formatMessage } = useIntl();
-  const { IntegrationSettings, BtsAuthFieldsInfo, FieldElement, FieldErrorHint, FieldText } =
-    components;
-  const { requiredField } = validators;
+  const dispatch = useDispatch();
+  const { IntegrationSettings, BtsAuthFieldsInfo } = components;
 
   const params = data.integrationParameters as unknown as MobitruIntegrationParameters;
 
@@ -48,30 +43,32 @@ export const MobitruSettings = ({
   ];
 
   const editAuthClickHandler = (testConnection: () => void) => {
-    actions.showModalAction({
-      id: 'addIntegrationModal',
-      data: {
-        isGlobal,
-        onConfirm: (integrationData: object, metaData: object) => {
-          onUpdate(
-            integrationData,
-            () => {
-              actions.hideModalAction();
-              testConnection();
-            },
-            metaData
-          );
-        },
-        instanceType: data.integrationType.name,
-        customProps: {
-          initialData: {
-            ...params,
-            integrationName: data.name,
+    dispatch(
+      actions.showModalAction({
+        id: 'addIntegrationModal',
+        data: {
+          isGlobal,
+          onConfirm: (integrationData: object, metaData: object) => {
+            onUpdate(
+              integrationData,
+              () => {
+                dispatch(actions.hideModalAction());
+                testConnection();
+              },
+              metaData
+            );
           },
-          editAuthMode: true,
+          instanceType: data.integrationType.name,
+          customProps: {
+            initialData: {
+              ...params,
+              integrationName: data.name,
+            },
+            editAuthMode: true,
+          },
         },
-      },
-    });
+      })
+    );
   };
 
   const editAuthConfig = {
@@ -79,26 +76,14 @@ export const MobitruSettings = ({
     onClick: editAuthClickHandler,
   };
 
-  const FormFieldsComponent = useMemo(
-    () =>
-      createMobitruFormFields({
-        FieldElement,
-        FieldErrorHint,
-        FieldText,
-        requiredField,
-      }),
-    [FieldElement, FieldErrorHint, FieldText, requiredField]
-  );
-
   return (
     <IntegrationSettings
       data={data}
       onUpdate={onUpdate}
       goToPreviousPage={goToPreviousPage}
       isGlobal={isGlobal}
-      formFieldsComponent={FormFieldsComponent}
-      formKey={constants.BTS_FIELDS_FORM}
       editAuthConfig={editAuthConfig}
+      hideInlineForm
     />
   );
 };
