@@ -15,7 +15,6 @@
  */
 
 // TODO: remove this file when the real backend is ready.
-// Mock order follows the Mobitru reference UI (premium first); occupied devices are not included.
 
 import androidAlcatel1X from '../../device-images/android/alcatel-1x.png';
 import androidPixel10ProXl from '../../device-images/android/google_pixel_10_pro_xl.png';

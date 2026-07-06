@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-import { Button, ExternalLinkIcon, SegmentedControl } from '@reportportal/ui-kit';
+import { BubblesLoader, Button, ExternalLinkIcon, SegmentedControl } from '@reportportal/ui-kit';
 import classNames from 'classnames/bind';
 import { MOBITRU_DEVICES_URL, MOBITRU_DOCS_URL, PLATFORMS } from 'constants/cloudDevices';
+import { PLUGIN_NAME } from 'constants/common';
+import { CLOUD_DEVICE_PAGE_EVENTS, getPlatformTabClickEvent } from 'events/cloudDevicePageEvents';
 import { ExtensionPropsContext, useExtensionProps } from 'hooks/useExtensionProps';
+import { useIntegrationCheck } from 'hooks/useIntegrationCheck';
 import { messages } from 'messages/cloudDevices';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { useDispatch } from 'react-redux';
+import { useTracking } from 'react-tracking';
 import {
   Device,
   DeviceCardProps,
@@ -30,6 +35,8 @@ import {
 } from 'types/cloudDevices';
 import type { ExtensionProps } from 'types/extensionProps';
 
+import { EmptyStateMaintenance } from '../emptyStateMaintenance';
+import { EmptyStateNoIntegration } from '../emptyStateNoIntegration';
 import styles from './cloudDevicesPage.scss';
 import MobitruIcon from './mobitruIcon';
 import { MOCK_ANDROID_DEVICES, MOCK_IOS_DEVICES, type RawDevice } from './mockData';
@@ -70,20 +77,31 @@ const groupRawDevices = (devices: RawDevice[]): DevicesData => ({
   available: devices.filter((d) => !d.premium).map(mapToDevice),
 });
 
-const DeviceCard = ({ device }: DeviceCardProps) => (
-  <button className={cx('device-card')} onClick={openInNewTab} type="button">
-    <div className={cx('device-info')}>
-      <div className={cx('device-name-row')}>
-        <span className={cx('device-name')}>{device.name}</span>
-        <span className={cx('external-link-icon')} aria-hidden="true">
-          <ExternalLinkIcon />
-        </span>
+const DeviceCard = ({ device }: DeviceCardProps) => {
+  const { trackEvent } = useTracking();
+
+  return (
+    <button
+      className={cx('device-card')}
+      onClick={() => {
+        trackEvent(CLOUD_DEVICE_PAGE_EVENTS.DEVICE_NAME_CLICK);
+        openInNewTab();
+      }}
+      type="button"
+    >
+      <div className={cx('device-info')}>
+        <div className={cx('device-name-row')}>
+          <span className={cx('device-name')}>{device.name}</span>
+          <span className={cx('external-link-icon')} aria-hidden="true">
+            <ExternalLinkIcon />
+          </span>
+        </div>
+        <span className={cx('device-version')}>{device.version}</span>
       </div>
-      <span className={cx('device-version')}>{device.version}</span>
-    </div>
-    <img className={cx('device-image')} src={device.imageUrl} alt={device.name} />
-  </button>
-);
+      <img className={cx('device-image')} src={device.imageUrl} alt={device.name} />
+    </button>
+  );
+};
 
 const DeviceGroup = ({ title, devices }: DeviceGroupProps) => {
   if (devices.length === 0) return null;
@@ -103,10 +121,13 @@ const DeviceGroup = ({ title, devices }: DeviceGroupProps) => {
 
 const CloudDevicesPageInner = () => {
   const { formatMessage } = useIntl();
-  const { components, selectors, constants, lib } = useExtensionProps();
+  const { components, selectors, constants, lib, utils } = useExtensionProps();
   const reduxSelect = lib?.useSelector as <R>(fn: (state: unknown) => R) => R | undefined;
+  const dispatch = useDispatch();
 
   const [activePlatform, setActivePlatform] = useState<Platform>('ios');
+  const [serviceState, setServiceState] = useState<'loading' | 'ok' | 'error'>('loading');
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const projectName =
     reduxSelect?.((selectors?.projectNameSelector ?? (() => '')) as (state: unknown) => string) ??
@@ -123,6 +144,67 @@ const CloudDevicesPageInner = () => {
     reduxSelect?.(
       (selectors?.urlProjectSlugSelector ?? (() => '')) as (state: unknown) => string
     ) ?? '';
+
+  const { isIntegrated } = useIntegrationCheck({
+    availableIntegrationsSelector: selectors.availableIntegrationsSelector,
+  });
+  const { trackEvent } = useTracking();
+  const pageViewTracked = useRef(false);
+
+  useEffect(() => {
+    if (pageViewTracked.current) return;
+
+    if (!isIntegrated) {
+      trackEvent(CLOUD_DEVICE_PAGE_EVENTS.EMPTY_STATE_PAGE_VIEW);
+      pageViewTracked.current = true;
+    } else if (serviceState === 'ok') {
+      trackEvent(CLOUD_DEVICE_PAGE_EVENTS.PAGE_VIEW);
+      pageViewTracked.current = true;
+    }
+  }, [isIntegrated, serviceState, trackEvent]);
+
+  useEffect(() => {
+    if (!isIntegrated) {
+      return undefined;
+    }
+    let cancelled = false;
+    setServiceState('loading');
+    utils
+      .fetch(utils.URLS.pluginsCommandsCommon(PLUGIN_NAME, 'getDevices'), {
+        method: 'POST',
+        data: { arguments: { platform: 'ios' } },
+      })
+      .then(() => {
+        if (!cancelled) setServiceState('ok');
+      })
+      .catch(() => {
+        if (!cancelled) setServiceState('error');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isIntegrated, refreshKey, utils]);
+
+  const handleRefresh = useCallback(() => setRefreshKey((k) => k + 1), []);
+  const handleOpenSettings = useCallback(() => {
+    trackEvent(CLOUD_DEVICE_PAGE_EVENTS.EMPTY_STATE_OPEN_SETTINGS_CLICK);
+    if (organizationSlug && projectSlug && dispatch) {
+      const PROJECT_SETTINGS_TAB_PAGE = String(constants?.PROJECT_SETTINGS_TAB_PAGE ?? '');
+      dispatch({
+        type: PROJECT_SETTINGS_TAB_PAGE,
+        payload: { organizationSlug, projectSlug, settingsTab: 'integrations' },
+        query: { subPage: PLUGIN_NAME },
+      });
+    }
+  }, [organizationSlug, projectSlug, dispatch, constants?.PROJECT_SETTINGS_TAB_PAGE, trackEvent]);
+  const handleOpenDocs = useCallback(() => {
+    trackEvent(CLOUD_DEVICE_PAGE_EVENTS.EMPTY_STATE_DOCS_LINK_CLICK);
+    window.open(MOBITRU_DOCS_URL, '_blank', 'noopener,noreferrer');
+  }, [trackEvent]);
+  const handleExploreDevices = useCallback(() => {
+    trackEvent(CLOUD_DEVICE_PAGE_EVENTS.EXPLORE_DEVICES_CLICK);
+    window.open(MOBITRU_DEVICES_URL, '_blank', 'noopener,noreferrer');
+  }, [trackEvent]);
 
   const platformSegmentOptions = useMemo(
     () =>
@@ -193,13 +275,35 @@ const CloudDevicesPageInner = () => {
 
   const pageTitle = formatMessage(messages.pageTitle);
 
+  if (!isIntegrated) {
+    return (
+      <EmptyStateNoIntegration onSettingsClick={handleOpenSettings} onDocsClick={handleOpenDocs} />
+    );
+  }
+
+  if (serviceState === 'loading') {
+    return (
+      <div className={cx('page')}>
+        <BubblesLoader />
+      </div>
+    );
+  }
+
+  if (serviceState === 'error') {
+    return <EmptyStateMaintenance onRefreshClick={handleRefresh} />;
+  }
+
   const renderPlatformToolbar = (startContent?: React.ReactNode) => (
     <div className={cx('header-toolbar')}>
       <div className={cx('header-toolbar-start')}>{startContent}</div>
       <SegmentedControl
         className={cx('platform-segment')}
         options={platformSegmentOptions}
-        onChange={(value) => setActivePlatform(String(value) as Platform)}
+        onChange={(value) => {
+          const platform = String(value) as Platform;
+          trackEvent(getPlatformTabClickEvent(platform));
+          setActivePlatform(platform);
+        }}
         ariaLabel={formatMessage(messages.platformFilterAriaLabel)}
       />
       <div className={cx('header-toolbar-end')}>
@@ -209,7 +313,7 @@ const CloudDevicesPageInner = () => {
           className={cx('explore-button')}
           icon={<ExternalLinkIcon />}
           iconPlace="end"
-          onClick={openInNewTab}
+          onClick={handleExploreDevices}
         >
           {formatMessage(messages.exploreDevices)}
         </Button>

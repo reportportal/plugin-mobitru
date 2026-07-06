@@ -15,9 +15,9 @@
  */
 
 import { BubblesLoader, SystemMessage } from '@reportportal/ui-kit';
-import { LOG_PAGE_EVENTS } from 'analyticsEvents/logPageEvents';
 import classNames from 'classnames/bind';
 import { PLUGIN_NAME } from 'constants/common';
+import { LOG_PAGE_EVENTS } from 'events/logPageEvents';
 import { RpAttribute } from 'extensionProps/common';
 import { ExtensionPropsContext, useExtensionProps } from 'hooks/useExtensionProps';
 import { useMobitruVideo } from 'hooks/useMobitruVideo';

@@ -71,7 +71,7 @@ const config = {
       messages: path.resolve(__dirname, 'src/messages'),
       types: path.resolve(__dirname, 'src/types'),
       utils: path.resolve(__dirname, 'src/utils'),
-      analyticsEvents: path.resolve(__dirname, 'src/analyticsEvents'),
+      events: path.resolve(__dirname, 'src/events'),
       extensionProps: path.resolve(__dirname, 'src/types/extensionProps'),
     },
   },

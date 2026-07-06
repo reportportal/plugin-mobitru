@@ -20,8 +20,8 @@
       "*": [
         "node_modules/*"
       ],
-      "analyticsEvents/*": [
-        "src/analyticsEvents/*"
+      "events/*": [
+        "src/events/*"
       ],
       "components/*": [
         "src/components/*"

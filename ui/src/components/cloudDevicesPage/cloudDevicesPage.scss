@@ -274,26 +274,3 @@
     text-decoration: underline;
   }
 }
-
-.loader {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-
-  &::after {
-    content: '';
-    width: 32px;
-    height: 32px;
-    border: 3px solid var(--rp-ui-color-border);
-    border-top-color: var(--rp-ui-color-primary);
-    border-radius: 50%;
-    animation: spin 0.75s linear infinite;
-  }
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
