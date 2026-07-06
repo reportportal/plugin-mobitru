@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Button, ExternalLinkIcon, SegmentedControl, SpinLoader } from '@reportportal/ui-kit';
+import { BubblesLoader, Button, ExternalLinkIcon, SegmentedControl } from '@reportportal/ui-kit';
 import classNames from 'classnames/bind';
 import { MOBITRU_DEVICES_URL, MOBITRU_DOCS_URL, PLATFORMS } from 'constants/cloudDevices';
 import { PLUGIN_NAME } from 'constants/common';
@@ -285,7 +285,7 @@ const CloudDevicesPageInner = () => {
   if (serviceState === 'loading') {
     return (
       <div className={cx('page')}>
-        <SpinLoader />
+        <BubblesLoader />
       </div>
     );
   }
