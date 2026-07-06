@@ -1,0 +1,68 @@
+.container {
+  display: flex;
+  flex-direction: column; /* Изменено: теперь ось вертикальная */
+  align-items: center; /* Изменено: центрирование по горизонтали */
+  min-height: 100vh; /* Рекомендация: 100vh для корректной высоты экрана */
+  padding: 2rem;
+  background-color: var(--rp-ui-base-bg-100);
+  box-sizing: border-box; /* Защита от вылезания padding за границы */
+
+  &::before {
+    content: '';
+    flex-grow: 2;
+  }
+
+  &::after {
+    content: '';
+    flex-grow: 3;
+  }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 400px;
+  text-align: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.content > svg:first-child {
+  width: 180px;
+  height: 130px;
+  flex-shrink: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--rp-ui-base-font-family-heading);
+  font-weight: var(--rp-ui-base-fw-regular);
+  font-size: 20px;
+  line-height: 31px;
+  color: var(--rp-ui-color-text-secondary);
+}
+
+.description {
+  margin: 0;
+  font-family: var(--rp-ui-base-font-family);
+  font-weight: var(--rp-ui-base-fw-regular);
+  font-size: 13px;
+  line-height: 20px;
+  text-indent: 1px;
+  color: var(--rp-ui-color-text-secondary);
+}
+
+.actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.docs {
+  svg * {
+    fill: var(--rp-ui-color-field-icon);
+  }
+}
