@@ -18,7 +18,7 @@ import { useSelector } from 'react-redux';
 import type { HostSelector } from 'types/extensionProps';
 
 export interface UseIntegrationCheckProps {
-  globalIntegrationsSelector: HostSelector;
+  availableIntegrationsSelector: HostSelector;
 }
 
 export interface IntegrationCheckResult {
@@ -26,9 +26,9 @@ export interface IntegrationCheckResult {
 }
 
 export const useIntegrationCheck = ({
-  globalIntegrationsSelector,
+  availableIntegrationsSelector,
 }: UseIntegrationCheckProps): IntegrationCheckResult => {
-  const integrations = useSelector(globalIntegrationsSelector);
+  const integrations = useSelector(availableIntegrationsSelector);
   return {
     isIntegrated: Array.isArray(integrations) && (integrations as unknown[]).length > 0,
   };

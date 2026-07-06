@@ -146,7 +146,7 @@ const CloudDevicesPageInner = () => {
     ) ?? '';
 
   const { isIntegrated } = useIntegrationCheck({
-    globalIntegrationsSelector: selectors.globalIntegrationsSelector,
+    availableIntegrationsSelector: selectors.availableIntegrationsSelector,
   });
   const { trackEvent } = useTracking();
   const pageViewTracked = useRef(false);
@@ -276,7 +276,7 @@ const CloudDevicesPageInner = () => {
 
   const pageTitle = formatMessage(messages.pageTitle);
 
-  if (!isIntegrated && 0) {
+  if (!isIntegrated) {
     return (
       <EmptyStateNoIntegration onSettingsClick={handleOpenSettings} onDocsClick={handleOpenDocs} />
     );
