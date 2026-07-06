@@ -18,18 +18,63 @@ import { useSelector } from 'react-redux';
 import type { HostSelector } from 'types/extensionProps';
 
 export interface UseIntegrationCheckProps {
-  availableIntegrationsSelector: HostSelector;
+  projectIntegrationsSelector: HostSelector;
+  organizationIntegrationsSelector: HostSelector;
+  globalIntegrationsSelector: HostSelector;
+}
+
+interface AvailableIntegration {
+  id?: number;
+  enabled?: boolean;
 }
 
 export interface IntegrationCheckResult {
   isIntegrated: boolean;
+  integrationId?: number;
 }
 
+const pickEnabledIntegration = (
+  integrations: AvailableIntegration[] | undefined
+): AvailableIntegration | undefined => {
+  if (!Array.isArray(integrations)) {
+    return undefined;
+  }
+
+  return integrations.find((item) => item.enabled);
+};
+
+const resolveIntegration = (
+  projectIntegrations: AvailableIntegration[] | undefined,
+  organizationIntegrations: AvailableIntegration[] | undefined,
+  globalIntegrations: AvailableIntegration[] | undefined
+): AvailableIntegration | undefined =>
+  pickEnabledIntegration(projectIntegrations) ??
+  pickEnabledIntegration(organizationIntegrations) ??
+  pickEnabledIntegration(globalIntegrations);
+
 export const useIntegrationCheck = ({
-  availableIntegrationsSelector,
+  projectIntegrationsSelector,
+  organizationIntegrationsSelector,
+  globalIntegrationsSelector,
 }: UseIntegrationCheckProps): IntegrationCheckResult => {
-  const integrations = useSelector(availableIntegrationsSelector);
+  const projectIntegrations = useSelector(projectIntegrationsSelector) as
+    | AvailableIntegration[]
+    | undefined;
+  const organizationIntegrations = useSelector(organizationIntegrationsSelector) as
+    | AvailableIntegration[]
+    | undefined;
+  const globalIntegrations = useSelector(globalIntegrationsSelector) as
+    | AvailableIntegration[]
+    | undefined;
+
+  const integration = resolveIntegration(
+    projectIntegrations,
+    organizationIntegrations,
+    globalIntegrations
+  );
+
   return {
-    isIntegrated: Array.isArray(integrations) && (integrations as unknown[]).length > 0,
+    isIntegrated: Boolean(integration),
+    integrationId: integration?.id,
   };
 };
