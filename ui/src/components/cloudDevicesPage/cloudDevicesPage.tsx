@@ -165,7 +165,6 @@ const CloudDevicesPageInner = () => {
 
   useEffect(() => {
     if (!isIntegrated) {
-      setServiceState('error');
       return undefined;
     }
     let cancelled = false;
@@ -184,7 +183,7 @@ const CloudDevicesPageInner = () => {
     return () => {
       cancelled = true;
     };
-  }, [isIntegrated, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isIntegrated, refreshKey, utils]);
 
   const handleRefresh = useCallback(() => setRefreshKey((k) => k + 1), []);
   const handleOpenSettings = useCallback(() => {

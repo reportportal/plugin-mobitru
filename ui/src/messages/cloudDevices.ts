@@ -1,7 +1,6 @@
 import { defineMessages } from 'react-intl';
 
 export const messages = defineMessages({
-  // Existing messages
   pageTitle: { id: 'Mobitru.CloudDevices.pageTitle', defaultMessage: 'Cloud Devices' },
   allOrganizations: {
     id: 'Mobitru.CloudDevices.allOrganizations',
@@ -29,8 +28,6 @@ export const messages = defineMessages({
     defaultMessage: 'Powered by',
   },
 
-  // New messages for empty states
-  // No Integration
   noIntegrationTitle: {
     id: 'Mobitru.CloudDevices.noIntegrationTitle',
     defaultMessage: 'No configuration yet',
@@ -52,7 +49,6 @@ export const messages = defineMessages({
     defaultMessage: 'Documentation',
   },
 
-  // Maintenance / Service Unavailable
   maintenanceTitle: {
     id: 'Mobitru.CloudDevices.maintenanceTitle',
     defaultMessage: "We're making things better!",
@@ -71,7 +67,6 @@ export const messages = defineMessages({
     defaultMessage: 'Check our socials for updates!',
   },
 
-  // Social Icons
   socialSlack: { id: 'Mobitru.CloudDevices.socialSlack', defaultMessage: 'Slack' },
   socialX: { id: 'Mobitru.CloudDevices.socialX', defaultMessage: 'X' },
   socialLinkedIn: { id: 'Mobitru.CloudDevices.socialLinkedIn', defaultMessage: 'LinkedIn' },

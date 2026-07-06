@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-/**
- * Social media links for Cloud Devices maintenance/empty states
- * Used in SocialFooter component
- */
 export const SOCIAL_LINKS = {
   slack: 'https://slack.epmrpp.reportportal.io',
   x: 'https://x.com/ReportPortal_io',
@@ -25,8 +21,3 @@ export const SOCIAL_LINKS = {
   youtube: 'https://youtube.com/c/ReportPortal',
   github: 'https://github.com/reportportal',
 } as const;
-
-/**
- * Project settings integrations navigation path
- */
-export const PROJECT_SETTINGS_INTEGRATIONS_HASH = '#integrations/mobitru';

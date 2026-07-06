@@ -13,10 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Copyright 2026 EPAM Systems
- * ...
- */
 
 import { Button, RefreshIcon } from '@reportportal/ui-kit';
 import classNames from 'classnames/bind';
@@ -47,17 +43,13 @@ const EmptyStateMaintenance = ({
 
   return (
     <div className={cx('maintenance-page')}>
-      {/* Логотип теперь вынесен выше луны, в космическую зону */}
       <div className={cx('logo')}>{parse(RpLogo)}</div>
 
-      {/* Большой круг (Луна) */}
       <div className={cx('moon-wrapper')}>
-        {/* Спутник внутри луны, жестко контролируется по размеру */}
         <div className={cx('satellite')} aria-hidden="true">
           {parse(SatelliteIllustration)}
         </div>
 
-        {/* Основной контент внутри луны */}
         <div className={cx('content')}>
           <div className={cx('text-group')}>
             <h2 className={cx('title')}>{intl.formatMessage(messages.maintenanceTitle)}</h2>
