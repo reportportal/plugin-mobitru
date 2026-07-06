@@ -37,7 +37,7 @@
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  color: var(--rp-ui-color-text-secondary);
+  color: var(--rp-ui-base-e-300);
   transition: color 0.2s ease-in-out;
   outline: none;
 
@@ -45,13 +45,11 @@
     width: 16px;
     height: 16px;
     display: block;
+    fill: currentColor;
   }
 
   &:hover {
     color: var(--rp-ui-base-topaz-focused);
-    svg {
-      fill: var(--rp-ui-base-topaz-focused);
-    }
   }
 
   &:focus-visible {
