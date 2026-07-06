@@ -14,7 +14,7 @@
     var(--rp-ui-base-e-300) 0%,
     var(--rp-ui-base-e-400) 55%,
     var(--rp-ui-base-charcoal) 100%
-  ) !important;
+  );
 
   &::before {
     content: '';
@@ -65,8 +65,8 @@
   /* Луна начинается чуть ниже логотипа */
   top: 140px;
 
-  background-color: var(--rp-ui-base-bg-000) !important;
-  border-radius: 50% !important;
+  background-color: var(--rp-ui-base-bg-000);
+  border-radius: 50%;
   box-shadow: 0 0 160px rgba(255, 255, 255, 0.4);
 }
 
@@ -86,8 +86,8 @@
 
   /* Заставляем спарсенный SVG подчиняться размерам контейнера */
   svg {
-    width: 100% !important;
-    height: 100% !important;
+    width: 100%;
+    height: 100%;
     display: block;
   }
 }
