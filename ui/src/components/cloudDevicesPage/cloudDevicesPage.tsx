@@ -145,9 +145,22 @@ const CloudDevicesPageInner = () => {
       (selectors?.urlProjectSlugSelector ?? (() => '')) as (state: unknown) => string
     ) ?? '';
 
-  const { isIntegrated } = useIntegrationCheck({
-    availableIntegrationsSelector: selectors.availableIntegrationsSelector,
+  const { isIntegrated, integrationId } = useIntegrationCheck({
+    projectIntegrationsSelector: selectors.projectIntegrationsSelector,
+    organizationIntegrationsSelector: selectors.organizationIntegrationsSelector,
+    globalIntegrationsSelector: selectors.globalIntegrationsSelector,
   });
+  const projectInfo =
+    reduxSelect?.(
+      (selectors?.projectInfoSelector ?? (() => ({}))) as (state: unknown) => {
+        projectId?: number;
+      }
+    ) ?? {};
+  const activeOrganization = reduxSelect?.(
+    (selectors?.activeOrganizationSelector ?? (() => undefined)) as (
+      state: unknown
+    ) => { id?: number } | undefined
+  );
   const { trackEvent } = useTracking();
   const pageViewTracked = useRef(false);
 
@@ -167,12 +180,23 @@ const CloudDevicesPageInner = () => {
     if (!isIntegrated) {
       return undefined;
     }
+    if (integrationId == null || projectInfo.projectId == null) {
+      setServiceState('error');
+      return undefined;
+    }
     let cancelled = false;
     setServiceState('loading');
     utils
       .fetch(utils.URLS.pluginsCommandsCommon(PLUGIN_NAME, 'getDevices'), {
         method: 'POST',
-        data: { arguments: { platform: 'ios' } },
+        data: {
+          context: {
+            integration_id: integrationId,
+            project_id: projectInfo.projectId,
+            ...(activeOrganization?.id != null ? { org_id: activeOrganization.id } : {}),
+          },
+          arguments: { platform: 'ios' },
+        },
       })
       .then(() => {
         if (!cancelled) setServiceState('ok');
@@ -183,7 +207,14 @@ const CloudDevicesPageInner = () => {
     return () => {
       cancelled = true;
     };
-  }, [isIntegrated, refreshKey, utils]);
+  }, [
+    activeOrganization?.id,
+    integrationId,
+    isIntegrated,
+    projectInfo.projectId,
+    refreshKey,
+    utils,
+  ]);
 
   const handleRefresh = useCallback(() => setRefreshKey((k) => k + 1), []);
   const handleOpenSettings = useCallback(() => {
