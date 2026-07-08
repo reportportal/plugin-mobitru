@@ -35,7 +35,7 @@ export interface EmptyStateMaintenanceProps {
 const EmptyStateMaintenance = ({
   onRefreshClick,
 }: EmptyStateMaintenanceProps): React.ReactElement => {
-  const intl = useIntl();
+  const { formatMessage } = useIntl();
 
   const handleRefresh = useCallback(() => {
     onRefreshClick();
@@ -52,9 +52,11 @@ const EmptyStateMaintenance = ({
 
         <div className={cx('content')}>
           <div className={cx('text-group')}>
-            <h2 className={cx('title')}>{intl.formatMessage(messages.maintenanceTitle)}</h2>
+            <h2 className={cx('title')}>{formatMessage(messages.maintenanceTitle)}</h2>
             <p className={cx('description')}>
-              {intl.formatMessage(messages.maintenanceDescription)}
+              {formatMessage(messages.maintenanceDescription)}
+              <br />
+              {formatMessage(messages.maintenanceDescription2)}
             </p>
 
             <Button
@@ -64,7 +66,7 @@ const EmptyStateMaintenance = ({
               iconPlace="start"
               className={cx('refresh-btn')}
             >
-              {intl.formatMessage(messages.maintenanceButtonRefresh)}
+              {formatMessage(messages.maintenanceButtonRefresh)}
             </Button>
           </div>
 
