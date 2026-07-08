@@ -306,9 +306,42 @@ const CloudDevicesPageInner = () => {
 
   const pageTitle = formatMessage(messages.pageTitle);
 
+  const renderPageHeader = (children?: React.ReactNode) => {
+    if (LocationHeaderLayout) {
+      return (
+        <div className={cx('header')}>
+          <LocationHeaderLayout
+            title={pageTitle}
+            className={cx('location-header')}
+            titleEllipsis={false}
+            breadcrumbs={[routeCrumbData.lastCrumb]}
+            tree={[routeCrumbData.rootCrumb]}
+          >
+            {children}
+          </LocationHeaderLayout>
+        </div>
+      );
+    }
+
+    return (
+      <div className={cx('header-fallback')}>
+        {children ?? <h1 className={cx('page-title')}>{pageTitle}</h1>}
+      </div>
+    );
+  };
+
+  const pageBreadcrumbProps = {
+    breadcrumbs: [routeCrumbData.lastCrumb],
+    breadcrumbTree: [routeCrumbData.rootCrumb],
+  };
+
   if (!isIntegrated) {
     return (
-      <EmptyStateNoIntegration onSettingsClick={handleOpenSettings} onDocsClick={handleOpenDocs} />
+      <EmptyStateNoIntegration
+        onSettingsClick={handleOpenSettings}
+        onDocsClick={handleOpenDocs}
+        {...pageBreadcrumbProps}
+      />
     );
   }
 
@@ -321,7 +354,7 @@ const CloudDevicesPageInner = () => {
   }
 
   if (serviceState === 'error') {
-    return <EmptyStateMaintenance onRefreshClick={handleRefresh} />;
+    return <EmptyStateMaintenance onRefreshClick={handleRefresh} {...pageBreadcrumbProps} />;
   }
 
   const renderPlatformToolbar = (startContent?: React.ReactNode) => (
@@ -354,23 +387,7 @@ const CloudDevicesPageInner = () => {
 
   return (
     <div className={cx('page')}>
-      {LocationHeaderLayout ? (
-        <div className={cx('header')}>
-          <LocationHeaderLayout
-            title={pageTitle}
-            className={cx('location-header')}
-            titleEllipsis={false}
-            breadcrumbs={[routeCrumbData.lastCrumb]}
-            tree={[routeCrumbData.rootCrumb]}
-          >
-            {renderPlatformToolbar()}
-          </LocationHeaderLayout>
-        </div>
-      ) : (
-        <div className={cx('header-fallback')}>
-          {renderPlatformToolbar(<h1 className={cx('page-title')}>{pageTitle}</h1>)}
-        </div>
-      )}
+      {renderPageHeader(renderPlatformToolbar())}
 
       <div className={cx('content')}>
         {!hasDevices && (

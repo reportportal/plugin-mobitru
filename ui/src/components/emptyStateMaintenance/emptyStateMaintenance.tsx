@@ -20,9 +20,10 @@ import parse from 'html-react-parser';
 import RpLogo from 'icons/logo-white.svg';
 import SatelliteIllustration from 'icons/satellite.svg';
 import { messages } from 'messages/cloudDevices';
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { useIntl } from 'react-intl';
 
+import { PageBreadcrumb, PageBreadcrumbs } from '../pageBreadcrumbs';
 import { SocialLinks } from '../socialLinks';
 import styles from './emptyStateMaintenance.scss';
 
@@ -30,10 +31,14 @@ const cx = classNames.bind(styles);
 
 export interface EmptyStateMaintenanceProps {
   onRefreshClick: () => void;
+  breadcrumbs?: PageBreadcrumb[];
+  breadcrumbTree?: PageBreadcrumb[];
 }
 
 const EmptyStateMaintenance = ({
   onRefreshClick,
+  breadcrumbs = [],
+  breadcrumbTree = [],
 }: EmptyStateMaintenanceProps): React.ReactElement => {
   const { formatMessage } = useIntl();
 
@@ -43,6 +48,8 @@ const EmptyStateMaintenance = ({
 
   return (
     <div className={cx('maintenance-page')}>
+      <PageBreadcrumbs breadcrumbs={breadcrumbs} breadcrumbTree={breadcrumbTree} theme="dark" />
+
       <div className={cx('logo')}>{parse(RpLogo)}</div>
 
       <div className={cx('moon-wrapper')}>
