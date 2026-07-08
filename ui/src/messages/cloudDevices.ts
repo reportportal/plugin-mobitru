@@ -42,7 +42,7 @@ export const messages = defineMessages({
   },
   noIntegrationButtonSettings: {
     id: 'Mobitru.CloudDevices.noIntegrationButtonSettings',
-    defaultMessage: 'Open settings',
+    defaultMessage: 'Open Settings',
   },
   noIntegrationButtonDocs: {
     id: 'Mobitru.CloudDevices.noIntegrationButtonDocs',
