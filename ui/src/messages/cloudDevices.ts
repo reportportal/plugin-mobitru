@@ -42,7 +42,7 @@ export const messages = defineMessages({
   },
   noIntegrationButtonSettings: {
     id: 'Mobitru.CloudDevices.noIntegrationButtonSettings',
-    defaultMessage: 'Open settings',
+    defaultMessage: 'Open Settings',
   },
   noIntegrationButtonDocs: {
     id: 'Mobitru.CloudDevices.noIntegrationButtonDocs',
@@ -56,7 +56,11 @@ export const messages = defineMessages({
   maintenanceDescription: {
     id: 'Mobitru.CloudDevices.maintenanceDescription',
     defaultMessage:
-      'Currently Mobitru service is unavailable due to maintenance. It might take some time. We appreciate your patience.',
+      'Currently Mobitru service is unavailable due to maintenance. It might take some time.',
+  },
+  maintenanceDescription2: {
+    id: 'Mobitru.CloudDevices.maintenanceDescription2',
+    defaultMessage: 'We appreciate your patience.',
   },
   maintenanceButtonRefresh: {
     id: 'Mobitru.CloudDevices.maintenanceButtonRefresh',

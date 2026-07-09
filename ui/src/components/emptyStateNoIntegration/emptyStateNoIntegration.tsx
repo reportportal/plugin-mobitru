@@ -19,9 +19,9 @@ import classNames from 'classnames/bind';
 import parse from 'html-react-parser';
 import ZeroFormIcon from 'icons/zero-form.svg';
 import { messages } from 'messages/cloudDevices';
-import React from 'react';
 import { useIntl } from 'react-intl';
 
+import { PageBreadcrumb, PageBreadcrumbs } from '../pageBreadcrumbs';
 import styles from './emptyStateNoIntegration.scss';
 
 const cx = classNames.bind(styles);
@@ -29,16 +29,22 @@ const cx = classNames.bind(styles);
 export interface EmptyStateNoIntegrationProps {
   onSettingsClick: () => void;
   onDocsClick: () => void;
+  breadcrumbs?: PageBreadcrumb[];
+  breadcrumbTree?: PageBreadcrumb[];
 }
 
 const EmptyStateNoIntegration = ({
   onSettingsClick,
   onDocsClick,
+  breadcrumbs = [],
+  breadcrumbTree = [],
 }: EmptyStateNoIntegrationProps): React.ReactElement => {
   const { formatMessage } = useIntl();
 
   return (
     <div className={cx('container')}>
+      <PageBreadcrumbs breadcrumbs={breadcrumbs} breadcrumbTree={breadcrumbTree} />
+
       <div className={cx('content')}>
         {parse(ZeroFormIcon)}
 

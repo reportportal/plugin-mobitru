@@ -250,19 +250,20 @@ const CloudDevicesPageInner = () => {
   const routeCrumbData = useMemo(() => {
     const ORGANIZATIONS_PAGE = String(constants?.ORGANIZATIONS_PAGE ?? '');
     const ORGANIZATION_PROJECTS_PAGE = String(constants?.ORGANIZATION_PROJECTS_PAGE ?? '');
-    const PROJECT_DASHBOARD_PAGE = String(constants?.PROJECT_DASHBOARD_PAGE ?? '');
 
     const rootCrumb: LocationBreadcrumb = {
       title: formatMessage(messages?.allOrganizations),
       link: { type: ORGANIZATIONS_PAGE },
       children: [],
     };
-    let lastCrumb: LocationBreadcrumb = rootCrumb;
+    let lastCrumb: LocationBreadcrumb;
 
     if (organizationSlug) {
       const organizationCrumb: LocationBreadcrumb = {
         title: organizationName ?? '',
-        link: { type: ORGANIZATION_PROJECTS_PAGE, payload: { organizationSlug } },
+        ...(projectSlug
+          ? { link: { type: ORGANIZATION_PROJECTS_PAGE, payload: { organizationSlug } } }
+          : {}),
         children: [],
       };
       rootCrumb.children = [organizationCrumb];
@@ -271,21 +272,19 @@ const CloudDevicesPageInner = () => {
       if (projectSlug) {
         const projectCrumb: LocationBreadcrumb = {
           title: projectName ?? '',
-          link: {
-            type: PROJECT_DASHBOARD_PAGE,
-            payload: { organizationSlug, projectSlug },
-          },
         };
         organizationCrumb.children = [projectCrumb];
         lastCrumb = projectCrumb;
       }
+    } else {
+      lastCrumb = { title: rootCrumb.title };
+      rootCrumb.link = undefined;
     }
 
     return { rootCrumb, lastCrumb };
   }, [
     constants?.ORGANIZATIONS_PAGE,
     constants?.ORGANIZATION_PROJECTS_PAGE,
-    constants?.PROJECT_DASHBOARD_PAGE,
     formatMessage,
     organizationName,
     organizationSlug,
@@ -306,9 +305,42 @@ const CloudDevicesPageInner = () => {
 
   const pageTitle = formatMessage(messages.pageTitle);
 
+  const renderPageHeader = (children?: React.ReactNode) => {
+    if (LocationHeaderLayout) {
+      return (
+        <div className={cx('header')}>
+          <LocationHeaderLayout
+            title={pageTitle}
+            className={cx('location-header')}
+            titleEllipsis={false}
+            breadcrumbs={[routeCrumbData.lastCrumb]}
+            tree={[routeCrumbData.rootCrumb]}
+          >
+            {children}
+          </LocationHeaderLayout>
+        </div>
+      );
+    }
+
+    return (
+      <div className={cx('header-fallback')}>
+        {children ?? <h1 className={cx('page-title')}>{pageTitle}</h1>}
+      </div>
+    );
+  };
+
+  const pageBreadcrumbProps = {
+    breadcrumbs: [routeCrumbData.lastCrumb],
+    breadcrumbTree: [routeCrumbData.rootCrumb],
+  };
+
   if (!isIntegrated) {
     return (
-      <EmptyStateNoIntegration onSettingsClick={handleOpenSettings} onDocsClick={handleOpenDocs} />
+      <EmptyStateNoIntegration
+        onSettingsClick={handleOpenSettings}
+        onDocsClick={handleOpenDocs}
+        {...pageBreadcrumbProps}
+      />
     );
   }
 
@@ -321,7 +353,7 @@ const CloudDevicesPageInner = () => {
   }
 
   if (serviceState === 'error') {
-    return <EmptyStateMaintenance onRefreshClick={handleRefresh} />;
+    return <EmptyStateMaintenance onRefreshClick={handleRefresh} {...pageBreadcrumbProps} />;
   }
 
   const renderPlatformToolbar = (startContent?: React.ReactNode) => (
@@ -354,23 +386,7 @@ const CloudDevicesPageInner = () => {
 
   return (
     <div className={cx('page')}>
-      {LocationHeaderLayout ? (
-        <div className={cx('header')}>
-          <LocationHeaderLayout
-            title={pageTitle}
-            className={cx('location-header')}
-            titleEllipsis={false}
-            breadcrumbs={[routeCrumbData.lastCrumb]}
-            tree={[routeCrumbData.rootCrumb]}
-          >
-            {renderPlatformToolbar()}
-          </LocationHeaderLayout>
-        </div>
-      ) : (
-        <div className={cx('header-fallback')}>
-          {renderPlatformToolbar(<h1 className={cx('page-title')}>{pageTitle}</h1>)}
-        </div>
-      )}
+      {renderPageHeader(renderPlatformToolbar())}
 
       <div className={cx('content')}>
         {!hasDevices && (

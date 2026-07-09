@@ -1,0 +1,11 @@
+.breadcrumbs-bar {
+  position: absolute;
+  top: 16px;
+  left: 32px;
+  z-index: 20;
+  max-width: calc(100% - 64px);
+}
+
+.breadcrumbs {
+  width: auto;
+}

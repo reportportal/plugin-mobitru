@@ -33,7 +33,7 @@ import styles from './socialLinks.scss';
 const cx = classNames.bind(styles);
 
 const SocialLinks = (): React.ReactElement => {
-  const intl = useIntl();
+  const { formatMessage } = useIntl();
   const { trackEvent } = useTracking();
 
   const handleSocialClick = useCallback(
@@ -45,7 +45,7 @@ const SocialLinks = (): React.ReactElement => {
 
   return (
     <div className={cx('social-footer')}>
-      <p className={cx('social-label')}>{intl.formatMessage(messages.maintenanceSocialsLabel)}</p>
+      <p className={cx('social-label')}>{formatMessage(messages.maintenanceSocialsLabel)}</p>
 
       <div className={cx('social-icons')}>
         <a
@@ -53,8 +53,8 @@ const SocialLinks = (): React.ReactElement => {
           target="_blank"
           rel="noopener noreferrer"
           className={cx('social-icon', 'slack')}
-          title={intl.formatMessage(messages.socialSlack)}
-          aria-label={intl.formatMessage(messages.socialSlack)}
+          title={formatMessage(messages.socialSlack)}
+          aria-label={formatMessage(messages.socialSlack)}
           onClick={() => handleSocialClick('slack')}
         >
           {parse(SlackIcon)}
@@ -65,8 +65,8 @@ const SocialLinks = (): React.ReactElement => {
           target="_blank"
           rel="noopener noreferrer"
           className={cx('social-icon', 'x')}
-          title={intl.formatMessage(messages.socialX)}
-          aria-label={intl.formatMessage(messages.socialX)}
+          title={formatMessage(messages.socialX)}
+          aria-label={formatMessage(messages.socialX)}
           onClick={() => handleSocialClick('twitter')}
         >
           {parse(XIcon)}
@@ -77,8 +77,8 @@ const SocialLinks = (): React.ReactElement => {
           target="_blank"
           rel="noopener noreferrer"
           className={cx('social-icon', 'linkedin')}
-          title={intl.formatMessage(messages.socialLinkedIn)}
-          aria-label={intl.formatMessage(messages.socialLinkedIn)}
+          title={formatMessage(messages.socialLinkedIn)}
+          aria-label={formatMessage(messages.socialLinkedIn)}
           onClick={() => handleSocialClick('linkedin')}
         >
           {parse(LinkedinIcon)}
@@ -89,8 +89,8 @@ const SocialLinks = (): React.ReactElement => {
           target="_blank"
           rel="noopener noreferrer"
           className={cx('social-icon', 'youtube')}
-          title={intl.formatMessage(messages.socialYouTube)}
-          aria-label={intl.formatMessage(messages.socialYouTube)}
+          title={formatMessage(messages.socialYouTube)}
+          aria-label={formatMessage(messages.socialYouTube)}
           onClick={() => handleSocialClick('youtube')}
         >
           {parse(YoutubeIcon)}
@@ -101,8 +101,8 @@ const SocialLinks = (): React.ReactElement => {
           target="_blank"
           rel="noopener noreferrer"
           className={cx('social-icon', 'github')}
-          title={intl.formatMessage(messages.socialGitHub)}
-          aria-label={intl.formatMessage(messages.socialGitHub)}
+          title={formatMessage(messages.socialGitHub)}
+          aria-label={formatMessage(messages.socialGitHub)}
           onClick={() => handleSocialClick('github')}
         >
           {parse(GithubIcon)}

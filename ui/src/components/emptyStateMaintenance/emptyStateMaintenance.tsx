@@ -20,9 +20,10 @@ import parse from 'html-react-parser';
 import RpLogo from 'icons/logo-white.svg';
 import SatelliteIllustration from 'icons/satellite.svg';
 import { messages } from 'messages/cloudDevices';
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { useIntl } from 'react-intl';
 
+import { PageBreadcrumb, PageBreadcrumbs } from '../pageBreadcrumbs';
 import { SocialLinks } from '../socialLinks';
 import styles from './emptyStateMaintenance.scss';
 
@@ -30,12 +31,16 @@ const cx = classNames.bind(styles);
 
 export interface EmptyStateMaintenanceProps {
   onRefreshClick: () => void;
+  breadcrumbs?: PageBreadcrumb[];
+  breadcrumbTree?: PageBreadcrumb[];
 }
 
 const EmptyStateMaintenance = ({
   onRefreshClick,
+  breadcrumbs = [],
+  breadcrumbTree = [],
 }: EmptyStateMaintenanceProps): React.ReactElement => {
-  const intl = useIntl();
+  const { formatMessage } = useIntl();
 
   const handleRefresh = useCallback(() => {
     onRefreshClick();
@@ -43,6 +48,8 @@ const EmptyStateMaintenance = ({
 
   return (
     <div className={cx('maintenance-page')}>
+      <PageBreadcrumbs breadcrumbs={breadcrumbs} breadcrumbTree={breadcrumbTree} />
+
       <div className={cx('logo')}>{parse(RpLogo)}</div>
 
       <div className={cx('moon-wrapper')}>
@@ -52,9 +59,11 @@ const EmptyStateMaintenance = ({
 
         <div className={cx('content')}>
           <div className={cx('text-group')}>
-            <h2 className={cx('title')}>{intl.formatMessage(messages.maintenanceTitle)}</h2>
+            <h2 className={cx('title')}>{formatMessage(messages.maintenanceTitle)}</h2>
             <p className={cx('description')}>
-              {intl.formatMessage(messages.maintenanceDescription)}
+              {formatMessage(messages.maintenanceDescription)}
+              <br />
+              {formatMessage(messages.maintenanceDescription2)}
             </p>
 
             <Button
@@ -64,7 +73,7 @@ const EmptyStateMaintenance = ({
               iconPlace="start"
               className={cx('refresh-btn')}
             >
-              {intl.formatMessage(messages.maintenanceButtonRefresh)}
+              {formatMessage(messages.maintenanceButtonRefresh)}
             </Button>
           </div>
 
