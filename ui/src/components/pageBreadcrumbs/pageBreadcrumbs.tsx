@@ -37,7 +37,6 @@ export interface PageBreadcrumb {
 export interface PageBreadcrumbsProps {
   breadcrumbs?: PageBreadcrumb[];
   breadcrumbTree?: PageBreadcrumb[];
-  theme?: 'dark' | 'light';
 }
 
 type BreadcrumbLinkComponent = React.ComponentType<{
@@ -50,7 +49,6 @@ type BreadcrumbLinkComponent = React.ComponentType<{
 export const PageBreadcrumbs = ({
   breadcrumbs = [],
   breadcrumbTree = [],
-  theme = 'light',
 }: PageBreadcrumbsProps): React.ReactElement | null => {
   const { components } = useExtensionProps();
 
@@ -80,7 +78,7 @@ export const PageBreadcrumbs = ({
         descriptors={breadcrumbDescriptors}
         tree={breadcrumbTreeDescriptors}
         LinkComponent={LinkComponent}
-        className={cx('breadcrumbs', `breadcrumbs--${theme}`)}
+        className={cx('breadcrumbs')}
         isLastClickable={isLastClickable}
         isSingleItemClickable={isSingleItemClickable}
       />

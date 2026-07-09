@@ -250,19 +250,20 @@ const CloudDevicesPageInner = () => {
   const routeCrumbData = useMemo(() => {
     const ORGANIZATIONS_PAGE = String(constants?.ORGANIZATIONS_PAGE ?? '');
     const ORGANIZATION_PROJECTS_PAGE = String(constants?.ORGANIZATION_PROJECTS_PAGE ?? '');
-    const PROJECT_DASHBOARD_PAGE = String(constants?.PROJECT_DASHBOARD_PAGE ?? '');
 
     const rootCrumb: LocationBreadcrumb = {
       title: formatMessage(messages?.allOrganizations),
       link: { type: ORGANIZATIONS_PAGE },
       children: [],
     };
-    let lastCrumb: LocationBreadcrumb = rootCrumb;
+    let lastCrumb: LocationBreadcrumb;
 
     if (organizationSlug) {
       const organizationCrumb: LocationBreadcrumb = {
         title: organizationName ?? '',
-        link: { type: ORGANIZATION_PROJECTS_PAGE, payload: { organizationSlug } },
+        ...(projectSlug
+          ? { link: { type: ORGANIZATION_PROJECTS_PAGE, payload: { organizationSlug } } }
+          : {}),
         children: [],
       };
       rootCrumb.children = [organizationCrumb];
@@ -271,21 +272,19 @@ const CloudDevicesPageInner = () => {
       if (projectSlug) {
         const projectCrumb: LocationBreadcrumb = {
           title: projectName ?? '',
-          link: {
-            type: PROJECT_DASHBOARD_PAGE,
-            payload: { organizationSlug, projectSlug },
-          },
         };
         organizationCrumb.children = [projectCrumb];
         lastCrumb = projectCrumb;
       }
+    } else {
+      lastCrumb = { title: rootCrumb.title };
+      rootCrumb.link = undefined;
     }
 
     return { rootCrumb, lastCrumb };
   }, [
     constants?.ORGANIZATIONS_PAGE,
     constants?.ORGANIZATION_PROJECTS_PAGE,
-    constants?.PROJECT_DASHBOARD_PAGE,
     formatMessage,
     organizationName,
     organizationSlug,

@@ -43,7 +43,7 @@ const EmptyStateNoIntegration = ({
 
   return (
     <div className={cx('container')}>
-      <PageBreadcrumbs breadcrumbs={breadcrumbs} breadcrumbTree={breadcrumbTree} theme="light" />
+      <PageBreadcrumbs breadcrumbs={breadcrumbs} breadcrumbTree={breadcrumbTree} />
 
       <div className={cx('content')}>
         {parse(ZeroFormIcon)}

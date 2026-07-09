@@ -48,7 +48,7 @@ const EmptyStateMaintenance = ({
 
   return (
     <div className={cx('maintenance-page')}>
-      <PageBreadcrumbs breadcrumbs={breadcrumbs} breadcrumbTree={breadcrumbTree} theme="dark" />
+      <PageBreadcrumbs breadcrumbs={breadcrumbs} breadcrumbTree={breadcrumbTree} />
 
       <div className={cx('logo')}>{parse(RpLogo)}</div>
 

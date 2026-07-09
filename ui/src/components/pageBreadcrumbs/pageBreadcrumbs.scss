@@ -9,29 +9,3 @@
 .breadcrumbs {
   width: auto;
 }
-
-.breadcrumbs--dark {
-  :global([class*='tree-button']) svg path {
-    fill: var(--rp-ui-base-e-300);
-  }
-
-  :global([class*='tree-button']:hover) svg path,
-  :global([class*='tree-button'].opened) svg path {
-    fill: var(--rp-ui-base-topaz-hover);
-  }
-
-  :global([class*='breadcrumb-text']) {
-    color: var(--rp-ui-base-e-300);
-  }
-}
-
-.breadcrumbs--light {
-  :global([class*='tree-button']) svg path {
-    fill: var(--rp-ui-base-e-400);
-  }
-
-  :global([class*='tree-button']:hover) svg path,
-  :global([class*='tree-button'].opened) svg path {
-    fill: var(--rp-ui-base-topaz-hover);
-  }
-}
