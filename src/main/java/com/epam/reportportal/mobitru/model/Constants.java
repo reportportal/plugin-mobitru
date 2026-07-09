@@ -23,10 +23,18 @@ public class Constants {
   public static final String MOBITRU_BASE_URL = "https://app.mobitru.com";
   public static final String BROWSERHUB_BASE_URL = "https://browserhub-us.mobitru.com";
 
+  // Reportportal attribute keys
+  public static final String MOBILE_RECORDING_ID_KEY = "mobitru_mobile_recording_id";
+  public static final String PLAYWRIGHT_RECORDING_ID_KEY = "mobitru_playwright_recording_id";
+  public static final String SELENIUM_RECORDING_ID_KEY = "mobitru_selenium_recording_id";
+
   // endpoints
   public static final String TEST_CONNECTION = "/billing/unit/%s/automation/api/device/ios";
   public static final String GET_DEVICES = "/billing/unit/%s/automation/api/device/%s";
-  public static final String GET_RECORDING = "/billing/unit/%s/automation/api/recording/%s";
-  public static final String GET_BROWSER_RECORDING = "/recordings/%s";
+  public static final String GET_MOBILE_RECORDING = "/billing/unit/%s/automation/api/recording/%s";
+  public static final String GET_PLAYWRIGHT_RECORDING = "/wd/hub/session/%s/recording";
+  public static final String GET_SELENIUM_RECORDING = "/recordings/%s";
+
+
 
 }

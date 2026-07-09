@@ -35,6 +35,9 @@ import org.junit.jupiter.api.Test;
 class MobitruRecordingClientTest {
 
   private static final BasicTextEncryptor ENCRYPTOR = createEncryptor();
+  private static final String MOBILE_RECORDING_ID_KEY = "mobitru_mobile_recording_id";
+  private static final String PLAYWRIGHT_RECORDING_ID_KEY = "mobitru_playwright_recording_id";
+  private static final String SELENIUM_RECORDING_ID_KEY = "mobitru_selenium_recording_id";
 
   private static BasicTextEncryptor createEncryptor() {
     BasicTextEncryptor encryptor = new BasicTextEncryptor();
@@ -62,7 +65,7 @@ class MobitruRecordingClientTest {
 
     try {
       RecordingAttachmentData result = client(server).downloadRecording(integration(), "rec-1",
-          "MBID");
+          MOBILE_RECORDING_ID_KEY);
 
       assertEquals("/billing/unit/demo-slug/automation/api/recording/rec-1", requestPath.get());
       assertEquals("Bearer token-123", authorizationHeader.get());
@@ -98,7 +101,7 @@ class MobitruRecordingClientTest {
   }
 
   @Test
-  void downloadsBrowserRecordingUsingBrowserHubEndpoint() throws Exception {
+  void downloadsSeleniumRecordingUsingBrowserHubEndpoint() throws Exception {
     byte[] body = "browser-video".getBytes(StandardCharsets.UTF_8);
     AtomicReference<String> requestPath = new AtomicReference<>();
     AtomicReference<String> authorizationHeader = new AtomicReference<>();
@@ -115,13 +118,45 @@ class MobitruRecordingClientTest {
 
     try {
       RecordingAttachmentData result = client(server).downloadRecording(integration(),
-          "browser-session-1", "BBID");
+          "browser-session-1", SELENIUM_RECORDING_ID_KEY);
 
       assertEquals("/recordings/browser-session-1", requestPath.get());
       assertEquals("Basic " + Base64.getEncoder()
               .encodeToString("demo-slug:token-123".getBytes(StandardCharsets.UTF_8)),
           authorizationHeader.get());
       assertEquals("browser-session-1.webm", result.fileName());
+      assertEquals("video/webm", result.contentType());
+      assertArrayEquals(body, result.content());
+    } finally {
+      server.stop(0);
+    }
+  }
+
+  @Test
+  void downloadsPlaywrightRecordingUsingBrowserHubSessionEndpoint() throws Exception {
+    byte[] body = "playwright-video".getBytes(StandardCharsets.UTF_8);
+    AtomicReference<String> requestPath = new AtomicReference<>();
+    AtomicReference<String> authorizationHeader = new AtomicReference<>();
+    HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+    server.createContext("/wd/hub/session/playwright-session-1/recording", exchange -> {
+      requestPath.set(exchange.getRequestURI().getPath());
+      authorizationHeader.set(exchange.getRequestHeaders().getFirst("Authorization"));
+      exchange.getResponseHeaders().add("Content-Type", "video/webm");
+      exchange.sendResponseHeaders(200, body.length);
+      exchange.getResponseBody().write(body);
+      exchange.close();
+    });
+    server.start();
+
+    try {
+      RecordingAttachmentData result = client(server).downloadRecording(integration(),
+          "playwright-session-1", PLAYWRIGHT_RECORDING_ID_KEY);
+
+      assertEquals("/wd/hub/session/playwright-session-1/recording", requestPath.get());
+      assertEquals("Basic " + Base64.getEncoder()
+              .encodeToString("demo-slug:token-123".getBytes(StandardCharsets.UTF_8)),
+          authorizationHeader.get());
+      assertEquals("playwright-session-1.webm", result.fileName());
       assertEquals("video/webm", result.contentType());
       assertArrayEquals(body, result.content());
     } finally {

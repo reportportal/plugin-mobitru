@@ -44,6 +44,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 class LoadExternalAttachmentCommandTest {
 
+  private static final String SELENIUM_RECORDING_ID_KEY = "mobitru_selenium_recording_id";
+
   @Test
   void downloadsAndAttachesRecordingToLog() throws Exception {
     AttachmentBinaryDataServiceStub attachmentService = new AttachmentBinaryDataServiceStub();
@@ -86,7 +88,7 @@ class LoadExternalAttachmentCommandTest {
     assertEquals("launch-uuid", attachmentService.savedMetaInfo.getLaunchUuid());
     assertEquals("log-uuid", attachmentService.savedMetaInfo.getLogUuid());
     assertEquals("session.mp4", attachmentService.savedMetaInfo.getFileName());
-    assertEquals("BBID", attachmentAttributeKey.get());
+    assertEquals(SELENIUM_RECORDING_ID_KEY, attachmentAttributeKey.get());
   }
 
   @Test
@@ -127,7 +129,8 @@ class LoadExternalAttachmentCommandTest {
     params.put(LoadExternalAttachmentCommand.LAUNCH_ID_PARAM, 3L);
     params.put(LoadExternalAttachmentCommand.TEST_ITEM_ID_PARAM, 5L);
     params.put(LoadExternalAttachmentCommand.ATTACHMENT_EXTERNAL_ID_PARAM, "rec-1");
-    params.put(LoadExternalAttachmentCommand.ATTACHMENT_ATTRIBUTE_KEY_PARAM, "BBID");
+    params.put(LoadExternalAttachmentCommand.ATTACHMENT_ATTRIBUTE_KEY_PARAM,
+        SELENIUM_RECORDING_ID_KEY);
     return params;
   }
 
