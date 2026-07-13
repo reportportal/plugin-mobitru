@@ -32,6 +32,10 @@
   padding-bottom: 12px;
 }
 
+.preserved-text {
+  white-space: pre;
+}
+
 .header-toolbar {
   display: grid;
   grid-template-columns: 0.75fr auto 1fr;
