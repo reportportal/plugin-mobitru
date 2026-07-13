@@ -49,7 +49,7 @@ interface RouteLink {
 }
 
 interface LocationBreadcrumb {
-  title: string;
+  title: string | React.ReactNode;
   link?: RouteLink;
   children?: LocationBreadcrumb[];
 }
@@ -260,7 +260,7 @@ const CloudDevicesPageInner = () => {
 
     if (organizationSlug) {
       const organizationCrumb: LocationBreadcrumb = {
-        title: organizationName ?? '',
+        title: <span className={cx('preserved-text')}>{organizationName ?? ''}</span>,
         ...(projectSlug
           ? { link: { type: ORGANIZATION_PROJECTS_PAGE, payload: { organizationSlug } } }
           : {}),
@@ -271,7 +271,7 @@ const CloudDevicesPageInner = () => {
 
       if (projectSlug) {
         const projectCrumb: LocationBreadcrumb = {
-          title: projectName ?? '',
+          title: <span className={cx('preserved-text')}>{projectName ?? ''}</span>,
         };
         organizationCrumb.children = [projectCrumb];
         lastCrumb = projectCrumb;

@@ -29,7 +29,7 @@ interface RouteLink {
 }
 
 export interface PageBreadcrumb {
-  title: string;
+  title: string | React.ReactNode;
   link?: RouteLink;
   children?: PageBreadcrumb[];
 }
