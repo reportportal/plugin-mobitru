@@ -39,9 +39,12 @@ public class RestClientBuilder {
   }
 
   public String basicAuthHeader(IntegrationProperties sp) {
-    String credentials = sp.getBillingUnit() + ":" + textEncryptor.decrypt(sp.getApiKey());
     String encodedCredentials = Base64.getEncoder()
-        .encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+        .encodeToString(basicAuthCredentials(sp).getBytes(StandardCharsets.UTF_8));
     return "Basic " + encodedCredentials;
+  }
+
+  private String basicAuthCredentials(IntegrationProperties sp) {
+    return sp.getBillingUnit() + ":" + textEncryptor.decrypt(sp.getApiKey());
   }
 }

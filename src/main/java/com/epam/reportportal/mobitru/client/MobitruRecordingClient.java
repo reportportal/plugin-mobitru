@@ -17,9 +17,12 @@
 package com.epam.reportportal.mobitru.client;
 
 import static com.epam.reportportal.mobitru.model.Constants.BROWSERHUB_BASE_URL;
-import static com.epam.reportportal.mobitru.model.Constants.GET_BROWSER_RECORDING;
-import static com.epam.reportportal.mobitru.model.Constants.GET_RECORDING;
+import static com.epam.reportportal.mobitru.model.Constants.GET_PLAYWRIGHT_RECORDING;
+import static com.epam.reportportal.mobitru.model.Constants.GET_MOBILE_RECORDING;
+import static com.epam.reportportal.mobitru.model.Constants.GET_SELENIUM_RECORDING;
 import static com.epam.reportportal.mobitru.model.Constants.MOBITRU_BASE_URL;
+import static com.epam.reportportal.mobitru.model.Constants.PLAYWRIGHT_RECORDING_ID_KEY;
+import static com.epam.reportportal.mobitru.model.Constants.SELENIUM_RECORDING_ID_KEY;
 
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
@@ -40,8 +43,6 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 public class MobitruRecordingClient {
-
-  private static final String BBID_KEY = "BBID";
 
   private final RestClientBuilder restClient;
   private final String mobileRecordingsBaseUrl;
@@ -73,8 +74,8 @@ public class MobitruRecordingClient {
     RestTemplate restTemplate = restClient.getRestTemplate();
 
     try {
-      String recordingUrl = resolveBaseUrl(attachmentAttributeKey)
-          + resolveRecordingPath(properties, attachmentExternalId, attachmentAttributeKey);
+      String recordingUrl = resolveRecordingUrl(properties, attachmentExternalId,
+          attachmentAttributeKey);
 
       HttpEntity<Void> request = new HttpEntity<>(
           buildAuthHeaders(properties, attachmentAttributeKey));
@@ -103,15 +104,23 @@ public class MobitruRecordingClient {
     }
   }
 
+  private String resolveRecordingUrl(IntegrationProperties properties, String attachmentExternalId,
+      String attachmentAttributeKey) {
+    return resolveBaseUrl(attachmentAttributeKey)
+        + resolveRecordingPath(properties, attachmentExternalId, attachmentAttributeKey);
+  }
+
   private String resolveBaseUrl(String attachmentAttributeKey) {
-    return BBID_KEY.equals(attachmentAttributeKey) ? browserRecordingsBaseUrl
-        : mobileRecordingsBaseUrl;
+    if (isBrowserHubRecording(attachmentAttributeKey)) {
+      return browserRecordingsBaseUrl;
+    }
+    return mobileRecordingsBaseUrl;
   }
 
   private HttpHeaders buildAuthHeaders(IntegrationProperties properties,
       String attachmentAttributeKey) {
     HttpHeaders headers = new HttpHeaders();
-    String authorization = BBID_KEY.equals(attachmentAttributeKey)
+    String authorization = isBrowserHubRecording(attachmentAttributeKey)
         ? restClient.basicAuthHeader(properties)
         : restClient.bearerAuthHeader(properties);
     headers.set(HttpHeaders.AUTHORIZATION, authorization);
@@ -120,10 +129,18 @@ public class MobitruRecordingClient {
 
   private String resolveRecordingPath(IntegrationProperties properties, String attachmentExternalId,
       String attachmentAttributeKey) {
-    if (BBID_KEY.equals(attachmentAttributeKey)) {
-      return String.format(GET_BROWSER_RECORDING, attachmentExternalId);
+    if (PLAYWRIGHT_RECORDING_ID_KEY.equals(attachmentAttributeKey)) {
+      return String.format(GET_PLAYWRIGHT_RECORDING, attachmentExternalId);
     }
-    return String.format(GET_RECORDING, properties.getBillingUnit(), attachmentExternalId);
+    if (SELENIUM_RECORDING_ID_KEY.equals(attachmentAttributeKey)) {
+      return String.format(GET_SELENIUM_RECORDING, attachmentExternalId);
+    }
+    return String.format(GET_MOBILE_RECORDING, properties.getBillingUnit(), attachmentExternalId);
+  }
+
+  private boolean isBrowserHubRecording(String attachmentAttributeKey) {
+    return PLAYWRIGHT_RECORDING_ID_KEY.equals(attachmentAttributeKey)
+        || SELENIUM_RECORDING_ID_KEY.equals(attachmentAttributeKey);
   }
 
   private String resolveFileName(ResponseEntity<byte[]> response, String attachmentExternalId,
