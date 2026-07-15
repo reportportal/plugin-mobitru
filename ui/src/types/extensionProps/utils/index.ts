@@ -16,9 +16,16 @@
 
 export type FetchFn = <T = unknown>(url: string, options?: Record<string, unknown>) => Promise<T>;
 
+export interface UserRoles {
+  userRole?: string;
+  organizationRole?: string;
+  projectRole?: string;
+}
+
 export interface UtilsInterface extends Record<string, unknown> {
   getDefectFormFields: (fields: any, checkedFieldsIds: any, integrationData: any) => string;
   fetch: FetchFn;
+  canUpdateSettings?: (roles: UserRoles) => boolean;
   URLS: {
     pluginsCommandsCommon: (pluginName: string, command: string) => string;
     logItems: (projectKey: string, itemId: number, level?: string) => string;
