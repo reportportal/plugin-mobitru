@@ -29,6 +29,7 @@ const cx = classNames.bind(styles);
 export interface EmptyStateNoIntegrationProps {
   onSettingsClick: () => void;
   onDocsClick: () => void;
+  canUpdateSettings?: boolean;
   breadcrumbs?: PageBreadcrumb[];
   breadcrumbTree?: PageBreadcrumb[];
 }
@@ -36,6 +37,7 @@ export interface EmptyStateNoIntegrationProps {
 const EmptyStateNoIntegration = ({
   onSettingsClick,
   onDocsClick,
+  canUpdateSettings = false,
   breadcrumbs = [],
   breadcrumbTree = [],
 }: EmptyStateNoIntegrationProps): React.ReactElement => {
@@ -52,14 +54,20 @@ const EmptyStateNoIntegration = ({
 
         <p className={cx('description')}>
           {formatMessage(messages.noIntegrationDescription)}
-          <br />
-          {formatMessage(messages.noIntegrationDescriptionContinue)}
+          {canUpdateSettings && (
+            <>
+              <br />
+              {formatMessage(messages.noIntegrationDescriptionContinue)}
+            </>
+          )}
         </p>
 
         <div className={cx('actions')}>
-          <Button variant="primary" onClick={onSettingsClick}>
-            {formatMessage(messages.noIntegrationButtonSettings)}
-          </Button>
+          {canUpdateSettings && (
+            <Button variant="primary" onClick={onSettingsClick}>
+              {formatMessage(messages.noIntegrationButtonSettings)}
+            </Button>
+          )}
 
           <Button
             variant="text"

@@ -161,6 +161,15 @@ const CloudDevicesPageInner = () => {
       state: unknown
     ) => { id?: number } | undefined
   );
+  const userRoles =
+    reduxSelect?.(
+      (selectors?.userRolesSelector ?? (() => ({}))) as (state: unknown) => {
+        userRole?: string;
+        organizationRole?: string;
+        projectRole?: string;
+      }
+    ) ?? {};
+  const canUpdateSettings = utils?.canUpdateSettings?.(userRoles) ?? false;
   const { trackEvent } = useTracking();
   const pageViewTracked = useRef(false);
 
@@ -339,6 +348,7 @@ const CloudDevicesPageInner = () => {
       <EmptyStateNoIntegration
         onSettingsClick={handleOpenSettings}
         onDocsClick={handleOpenDocs}
+        canUpdateSettings={canUpdateSettings}
         {...pageBreadcrumbProps}
       />
     );
