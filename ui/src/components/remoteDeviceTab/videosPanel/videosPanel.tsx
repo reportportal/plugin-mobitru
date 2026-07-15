@@ -46,11 +46,16 @@ const messages = defineMessages({
     id: 'LogTab.empty',
     defaultMessage: 'No Mobitru video evidence is available for this test item.',
   },
+  listLoadError: {
+    id: 'LogTab.videosListLoadError',
+    defaultMessage: 'Video list could not be loaded',
+  },
 });
 
 interface VideosPanelProps {
   videos: MobitruVideoLog[];
   loading: boolean;
+  listError: string;
   selectedLogId: number | null;
   onActivate: (logId: number) => void;
   onJumpToLog?: (logId: number, itemId: number) => void;
@@ -59,6 +64,7 @@ interface VideosPanelProps {
 const VideosPanel = ({
   videos,
   loading,
+  listError,
   selectedLogId,
   onActivate,
   onJumpToLog = undefined,
@@ -86,6 +92,14 @@ const VideosPanel = ({
       return (
         <div className={cx('video-list-loader')}>
           <BubblesLoader />
+        </div>
+      );
+    }
+
+    if (listError) {
+      return (
+        <div className={cx('video-list-empty')}>
+          <SystemMessage mode="error" caption={formatMessage(messages.listLoadError)} />
         </div>
       );
     }

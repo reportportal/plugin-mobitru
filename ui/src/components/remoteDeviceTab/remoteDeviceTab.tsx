@@ -48,7 +48,7 @@ const RemoteDeviceTabInner = ({
   const [selectedLogId, setSelectedLogId] = useState<number | null>(null);
   const [shouldAutoplay, setShouldAutoplay] = useState(false);
 
-  const { videos, listLoading, videoSrc, videoLoading, videoError } = useMobitruVideos({
+  const { videos, listLoading, listError, videoSrc, videoLoading, videoError } = useMobitruVideos({
     activeRetryPath: activeRetry.path,
     excludedRetryParentId,
     selectedLogId,
@@ -83,6 +83,7 @@ const RemoteDeviceTabInner = ({
         <VideosPanel
           videos={videos}
           loading={listLoading}
+          listError={listError}
           selectedLogId={selectedLogId}
           onActivate={handleActivateVideo}
           onJumpToLog={onJumpToLog}

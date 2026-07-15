@@ -38,7 +38,18 @@ interface LogItem {
 
 interface LogItemsResponse {
   content: LogItem[];
+  page?: { totalPages?: number };
 }
+
+const mapVideoLogs = (content: LogItem[]): MobitruVideoLog[] =>
+  content
+    .filter((log) => log.binaryContent?.id)
+    .map((log) => ({
+      id: log.id,
+      itemId: log.itemId,
+      time: log.time,
+      binaryContent: log.binaryContent!,
+    }));
 
 interface UseMobitruVideosParams {
   activeRetryPath: string;
@@ -84,34 +95,46 @@ export const useMobitruVideos = ({
       setVideoError('');
 
       try {
-        const logsRes = await fetch<LogItemsResponse>(
-          URLS.logsUnderPath(projectKey, activeRetryPath, excludedRetryParentId),
-          {
-            params: {
-              'filter.eq.level': MOBITRU_LOG_LEVEL,
-              'filter.ex.binaryContent': true,
-              'page.sort': 'logTime,ASC',
-              'page.size': VIDEO_LIST_PAGE_SIZE,
-              'page.page': 1,
-            },
-            signal: abortController.signal,
+        const fetchLogsPage = async (
+          page: number,
+          totalPages = 1,
+          accumulated: LogItem[] = []
+        ): Promise<LogItem[]> => {
+          if (abortController.signal.aborted || page > totalPages) {
+            return accumulated;
           }
-        );
+
+          const logsRes = await fetch<LogItemsResponse>(
+            URLS.logsUnderPath(projectKey, activeRetryPath, excludedRetryParentId),
+            {
+              params: {
+                'filter.eq.level': MOBITRU_LOG_LEVEL,
+                'filter.ex.binaryContent': true,
+                'page.sort': 'logTime,ASC',
+                'page.size': VIDEO_LIST_PAGE_SIZE,
+                'page.page': page,
+              },
+              signal: abortController.signal,
+            }
+          );
+
+          if (abortController.signal.aborted) {
+            return accumulated;
+          }
+
+          const content = [...accumulated, ...(logsRes.content ?? [])];
+          const nextTotalPages = logsRes.page?.totalPages ?? 1;
+
+          return fetchLogsPage(page + 1, nextTotalPages, content);
+        };
+
+        const allLogs = await fetchLogsPage(1);
 
         if (abortController.signal.aborted) {
           return;
         }
 
-        const mappedVideos = (logsRes.content ?? [])
-          .filter((log) => log.binaryContent?.id)
-          .map((log) => ({
-            id: log.id,
-            itemId: log.itemId,
-            time: log.time,
-            binaryContent: log.binaryContent!,
-          }));
-
-        setVideos(mappedVideos);
+        setVideos(mapVideoLogs(allLogs));
       } catch (e: unknown) {
         if (abortController.signal.aborted) {
           return;

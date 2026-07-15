@@ -58,7 +58,7 @@ const VideoListItem = ({
   };
 
   const handleRowKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (isSelected) {
+    if (isSelected || event.target !== event.currentTarget) {
       return;
     }
 

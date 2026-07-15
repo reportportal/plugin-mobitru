@@ -155,12 +155,12 @@ const VideoPreview = ({
 
       if (playResult && typeof playResult.then === 'function') {
         playResult
+          .catch(() => undefined)
           .then(() => {
             if (!cancelled) {
               onAutoplayHandled();
             }
-          })
-          .catch(() => {});
+          });
         return;
       }
 
