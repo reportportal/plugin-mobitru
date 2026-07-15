@@ -14,150 +14,108 @@
  * limitations under the License.
  */
 
-import { BubblesLoader, SystemMessage } from '@reportportal/ui-kit';
 import classNames from 'classnames/bind';
-import { PLUGIN_NAME } from 'constants/common';
-import { LOG_PAGE_EVENTS } from 'events/logPageEvents';
 import { RpAttribute } from 'extensionProps/common';
-import { ExtensionPropsContext, useExtensionProps } from 'hooks/useExtensionProps';
-import { useMobitruVideo } from 'hooks/useMobitruVideo';
-import type { APITypes, PlyrInstance, PlyrOptions, PlyrSource } from 'plyr-react';
-import { Plyr } from 'plyr-react';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { defineMessages, useIntl } from 'react-intl';
-import { useTracking } from 'react-tracking';
+import { ExtensionPropsContext } from 'hooks/useExtensionProps';
+import { useMobitruVideos } from 'hooks/useMobitruVideos';
+import React, { useCallback, useEffect, useState } from 'react';
 import type { ExtensionProps } from 'types/extensionProps';
 
 import styles from './remoteDeviceTab.scss';
+import { VideoPreview } from './videoPreview/videoPreview';
+import { VideosPanel } from './videosPanel/videosPanel';
 
 const cx = classNames.bind(styles);
 
-const BASE_PLAYER_OPTIONS: Omit<PlyrOptions, 'iconUrl'> = {
-  controls: [
-    'play-large',
-    'progress',
-    'play',
-    'mute',
-    'volume',
-    'current-time',
-    'duration',
-    'fullscreen',
-  ],
-  clickToPlay: true,
-  keyboard: {
-    focused: true,
-    global: false,
-  },
-  ratio: '16:9',
-  tooltips: {
-    controls: false,
-    seek: false,
-  },
-};
-
-const messages = defineMessages({
-  videoRecordTitle: {
-    id: 'LogTab.videoRecordTitle',
-    defaultMessage: 'VIDEO RECORD',
-  },
-  empty: {
-    id: 'LogTab.empty',
-    defaultMessage: 'No Mobitru video evidence is available for this test item.',
-  },
-});
-
-interface LogItem {
+interface ActiveRetry {
   id: number;
-  attributes?: RpAttribute[];
+  path: string;
 }
 
 interface LogTabProps {
-  logItem: LogItem;
+  logItem: { id: number; attributes?: RpAttribute[] };
+  activeRetry: ActiveRetry;
+  excludedRetryParentId?: number;
+  onJumpToLog?: (logId: number, itemId: number) => void;
 }
 
-const RemoteDeviceTabInner = ({ logItem }: LogTabProps) => {
-  const { formatMessage } = useIntl();
-  const { trackEvent } = useTracking();
-  const plyrInstanceRef = useRef<PlyrInstance | null>(null);
-  const { videoSrc, loading } = useMobitruVideo(logItem.id);
-  const {
-    utils: { URLS },
-  } = useExtensionProps();
+const RemoteDeviceTabInner = ({
+  logItem,
+  activeRetry,
+  excludedRetryParentId = undefined,
+  onJumpToLog = undefined,
+}: LogTabProps) => {
+  const [selectedLogId, setSelectedLogId] = useState<number | null>(null);
+  const [shouldAutoplay, setShouldAutoplay] = useState(false);
 
-  const handlePlayVideo = useCallback(() => {
-    trackEvent(LOG_PAGE_EVENTS.PLAY_MOBITRU_VIDEO);
-  }, [trackEvent]);
+  const { videos, listLoading, videoSrc, videoLoading, videoError } = useMobitruVideos({
+    activeRetryPath: activeRetry.path,
+    excludedRetryParentId,
+    selectedLogId,
+  });
 
-  const setPlayerRef = useCallback(
-    (api: APITypes | null) => {
-      if (plyrInstanceRef.current) {
-        plyrInstanceRef.current.off('play', handlePlayVideo);
-        plyrInstanceRef.current = null;
-      }
+  useEffect(() => {
+    setSelectedLogId(null);
+    setShouldAutoplay(false);
+  }, [activeRetry.id, logItem.id]);
 
-      const player = api?.plyr;
+  useEffect(() => {
+    if (!listLoading && videos.length && selectedLogId === null) {
+      setSelectedLogId(videos[0].id);
+      setShouldAutoplay(false);
+    }
+  }, [listLoading, selectedLogId, videos]);
 
-      if (player && typeof player.on === 'function') {
-        player.on('play', handlePlayVideo);
-        plyrInstanceRef.current = player;
-      }
-    },
-    [handlePlayVideo]
-  );
+  const handleActivateVideo = useCallback((logId: number) => {
+    setSelectedLogId(logId);
+    setShouldAutoplay(true);
+  }, []);
 
-  useEffect(
-    () => () => {
-      if (plyrInstanceRef.current) {
-        plyrInstanceRef.current.off('play', handlePlayVideo);
-      }
-    },
-    [handlePlayVideo]
-  );
+  const handleAutoplayHandled = useCallback(() => {
+    setShouldAutoplay(false);
+  }, []);
 
-  const playerOptions = useMemo(
-    (): PlyrOptions => ({
-      ...BASE_PLAYER_OPTIONS,
-      iconUrl: URLS.pluginPublicFile(PLUGIN_NAME, 'plyr.svg'),
-    }),
-    [URLS]
-  );
-
-  const playerSource: PlyrSource = {
-    type: 'video',
-    sources: [
-      {
-        src: videoSrc,
-        type: 'video/mp4',
-      },
-    ],
-  };
-
-  const getVideoBlock = () =>
-    videoSrc ? (
-      <div className={cx('video-player')}>
-        <Plyr ref={setPlayerRef} options={playerOptions} playsInline source={playerSource} />
-      </div>
-    ) : (
-      <div className={cx('empty')}>
-        <SystemMessage mode="info" caption={formatMessage(messages.empty)} />
-      </div>
-    );
+  const playerScopeId = `${logItem.id}-${activeRetry.id}`;
 
   return (
-    <div className={cx('root')} key={logItem.id}>
+    <div className={cx('root')}>
       <div className={cx('columns')}>
-        <section className={cx('column')} aria-label={formatMessage(messages.videoRecordTitle)}>
-          <div className={cx('column-title')}>{formatMessage(messages.videoRecordTitle)}</div>
-          <div className={cx('video-block')}>{loading ? <BubblesLoader /> : getVideoBlock()}</div>
-        </section>
+        <VideosPanel
+          videos={videos}
+          loading={listLoading}
+          selectedLogId={selectedLogId}
+          onActivate={handleActivateVideo}
+          onJumpToLog={onJumpToLog}
+        />
+        <VideoPreview
+          key={playerScopeId}
+          videoSrc={videoSrc}
+          loading={videoLoading}
+          error={videoError}
+          hasSelection={selectedLogId !== null}
+          selectedLogId={selectedLogId}
+          shouldAutoplay={shouldAutoplay}
+          onAutoplayHandled={handleAutoplayHandled}
+        />
       </div>
     </div>
   );
 };
 
-const RemoteDeviceTab = ({ logItem, ...extensionProps }: ExtensionProps & LogTabProps) => (
+const RemoteDeviceTab = ({
+  logItem,
+  activeRetry,
+  excludedRetryParentId = undefined,
+  onJumpToLog = undefined,
+  ...extensionProps
+}: ExtensionProps & LogTabProps) => (
   <ExtensionPropsContext.Provider value={extensionProps}>
-    <RemoteDeviceTabInner logItem={logItem} />
+    <RemoteDeviceTabInner
+      logItem={logItem}
+      activeRetry={activeRetry}
+      excludedRetryParentId={excludedRetryParentId}
+      onJumpToLog={onJumpToLog}
+    />
   </ExtensionPropsContext.Provider>
 );
 
