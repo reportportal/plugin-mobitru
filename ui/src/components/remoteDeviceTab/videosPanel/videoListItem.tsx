@@ -28,9 +28,9 @@ import styles from '../remoteDeviceTab.scss';
 const cx = classNames.bind(styles);
 
 const messages = defineMessages({
-  jumpTo: {
-    id: 'LogTab.jumpTo',
-    defaultMessage: 'Jump to',
+  jumpToLog: {
+    id: 'LogTab.jumpToLog',
+    defaultMessage: 'Jump to Log',
   },
 });
 
@@ -92,9 +92,11 @@ const VideoListItem = ({
           type="button"
           className={cx('video-list-item-jump')}
           onClick={handleJumpToClick}
-          aria-label={formatMessage(messages.jumpTo)}
+          aria-label={formatMessage(messages.jumpToLog)}
         >
-          <span className={cx('video-list-item-jump-label')}>{formatMessage(messages.jumpTo)}</span>
+          <span className={cx('video-list-item-jump-label')}>
+            {formatMessage(messages.jumpToLog)}
+          </span>
           <i className={cx('video-list-item-jump-icon')}>{parse(NavigateArrowIcon)}</i>
         </button>
       )}
