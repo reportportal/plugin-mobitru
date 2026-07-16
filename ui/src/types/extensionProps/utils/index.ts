@@ -29,6 +29,7 @@ export interface UtilsInterface extends Record<string, unknown> {
   URLS: {
     pluginsCommandsCommon: (pluginName: string, command: string) => string;
     logItems: (projectKey: string, itemId: number, level?: string) => string;
+    logsUnderPath: (projectKey: string, path: string, excludedRetryParentId?: number) => string;
     getFileById: (projectKey: string, dataId: number, loadThumbnail?: boolean) => string;
     pluginPublicFile: (pluginName: string, fileKey: string) => string;
   };
