@@ -17,8 +17,8 @@
 package com.epam.reportportal.mobitru.client;
 
 import static com.epam.reportportal.mobitru.model.Constants.BROWSERHUB_BASE_URL;
-import static com.epam.reportportal.mobitru.model.Constants.GET_PLAYWRIGHT_RECORDING;
 import static com.epam.reportportal.mobitru.model.Constants.GET_MOBILE_RECORDING;
+import static com.epam.reportportal.mobitru.model.Constants.GET_PLAYWRIGHT_RECORDING;
 import static com.epam.reportportal.mobitru.model.Constants.GET_SELENIUM_RECORDING;
 import static com.epam.reportportal.mobitru.model.Constants.MOBITRU_BASE_URL;
 import static com.epam.reportportal.mobitru.model.Constants.PLAYWRIGHT_RECORDING_ID_KEY;
@@ -30,6 +30,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import com.epam.reportportal.mobitru.model.IntegrationProperties;
 import com.epam.reportportal.mobitru.model.RecordingAttachmentData;
 import com.epam.reportportal.mobitru.utils.ValidationUtils;
+import java.time.Duration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -47,6 +48,7 @@ public class MobitruRecordingClient {
   private final RestClientBuilder restClient;
   private final String mobileRecordingsBaseUrl;
   private final String browserRecordingsBaseUrl;
+  private final RetryExecutor retryExecutor;
 
   public MobitruRecordingClient(RestClientBuilder restClient) {
     this(restClient, MOBITRU_BASE_URL, BROWSERHUB_BASE_URL);
@@ -54,9 +56,21 @@ public class MobitruRecordingClient {
 
   MobitruRecordingClient(RestClientBuilder restClient, String mobileRecordingsBaseUrl,
       String browserRecordingsBaseUrl) {
+    this(restClient, mobileRecordingsBaseUrl, browserRecordingsBaseUrl, new RetryExecutor());
+  }
+
+  MobitruRecordingClient(RestClientBuilder restClient, String mobileRecordingsBaseUrl,
+      String browserRecordingsBaseUrl, Duration retryDelay) {
+    this(restClient, mobileRecordingsBaseUrl, browserRecordingsBaseUrl,
+        new RetryExecutor(RetryExecutor.DEFAULT_MAX_ATTEMPTS, retryDelay));
+  }
+
+  MobitruRecordingClient(RestClientBuilder restClient, String mobileRecordingsBaseUrl,
+      String browserRecordingsBaseUrl, RetryExecutor retryExecutor) {
     this.restClient = restClient;
     this.mobileRecordingsBaseUrl = mobileRecordingsBaseUrl;
     this.browserRecordingsBaseUrl = browserRecordingsBaseUrl;
+    this.retryExecutor = retryExecutor;
   }
 
   public RecordingAttachmentData downloadRecording(Integration integration,
@@ -80,8 +94,9 @@ public class MobitruRecordingClient {
       HttpEntity<Void> request = new HttpEntity<>(
           buildAuthHeaders(properties, attachmentAttributeKey));
 
-      ResponseEntity<byte[]> response = restTemplate.exchange(recordingUrl, HttpMethod.GET, request,
-          byte[].class);
+      ResponseEntity<byte[]> response =
+          retryExecutor.execute("download recording from '" + recordingUrl + "'",
+              () -> restTemplate.exchange(recordingUrl, HttpMethod.GET, request, byte[].class));
 
       byte[] body = response.getBody();
 

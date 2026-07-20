@@ -28,6 +28,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jasypt.util.text.BasicTextEncryptor;
 import org.junit.jupiter.api.Test;
@@ -138,7 +140,7 @@ class MobitruRecordingClientTest {
     AtomicReference<String> requestPath = new AtomicReference<>();
     AtomicReference<String> authorizationHeader = new AtomicReference<>();
     HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
-    server.createContext("/wd/hub/session/playwright-session-1/recording", exchange -> {
+    server.createContext("/recordings/playwright-session-1", exchange -> {
       requestPath.set(exchange.getRequestURI().getPath());
       authorizationHeader.set(exchange.getRequestHeaders().getFirst("Authorization"));
       exchange.getResponseHeaders().add("Content-Type", "video/webm");
@@ -152,7 +154,7 @@ class MobitruRecordingClientTest {
       RecordingAttachmentData result = client(server).downloadRecording(integration(),
           "playwright-session-1", PLAYWRIGHT_RECORDING_ID_KEY);
 
-      assertEquals("/wd/hub/session/playwright-session-1/recording", requestPath.get());
+      assertEquals("/recordings/playwright-session-1", requestPath.get());
       assertEquals("Basic " + Base64.getEncoder()
               .encodeToString("demo-slug:token-123".getBytes(StandardCharsets.UTF_8)),
           authorizationHeader.get());
@@ -164,9 +166,45 @@ class MobitruRecordingClientTest {
     }
   }
 
+  @Test
+  void retriesOnTransientFailureAndSucceeds() throws Exception {
+    byte[] body = "video".getBytes(StandardCharsets.UTF_8);
+    AtomicInteger requestCount = new AtomicInteger();
+    HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+    server.createContext("/billing/unit/demo-slug/automation/api/recording/rec-3", exchange -> {
+      if (requestCount.incrementAndGet() < 3) {
+        exchange.sendResponseHeaders(500, -1);
+        exchange.close();
+        return;
+      }
+      exchange.getResponseHeaders().add("Content-Type", "video/mp4");
+      exchange.sendResponseHeaders(200, body.length);
+      exchange.getResponseBody().write(body);
+      exchange.close();
+    });
+    server.start();
+
+    try {
+      RecordingAttachmentData result = client(server, Duration.ofMillis(1))
+          .downloadRecording(integration(), "rec-3", MOBILE_RECORDING_ID_KEY);
+
+      assertEquals(3, requestCount.get());
+      assertEquals("video/mp4", result.contentType());
+      assertArrayEquals(body, result.content());
+    } finally {
+      server.stop(0);
+    }
+  }
+
   private MobitruRecordingClient client(HttpServer server) {
     String baseUrl = "http://localhost:" + server.getAddress().getPort();
     return new MobitruRecordingClient(new RestClientBuilder(ENCRYPTOR), baseUrl, baseUrl);
+  }
+
+  private MobitruRecordingClient client(HttpServer server, Duration retryDelay) {
+    String baseUrl = "http://localhost:" + server.getAddress().getPort();
+    return new MobitruRecordingClient(new RestClientBuilder(ENCRYPTOR), baseUrl, baseUrl,
+        retryDelay);
   }
 
   private Integration integration() {

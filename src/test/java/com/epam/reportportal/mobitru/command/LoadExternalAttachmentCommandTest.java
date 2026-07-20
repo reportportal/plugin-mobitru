@@ -33,6 +33,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launc
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.Log;
 import com.epam.reportportal.mobitru.client.MobitruRecordingClient;
 import com.epam.reportportal.mobitru.model.RecordingAttachmentData;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Proxy;
 import java.time.Instant;
 import java.util.HashMap;
@@ -71,8 +72,8 @@ class LoadExternalAttachmentCommandTest {
         repositoryProxy(LogRepository.class, log),
         repositoryProxy(LaunchRepository.class, launch),
         attachmentService,
-        null, null, null, null
-    );
+        null, null, null, null,
+        new ObjectMapper());
 
     command.executeCommand(new Integration(), new PluginCommandRQ(null, params()));
 
@@ -114,8 +115,8 @@ class LoadExternalAttachmentCommandTest {
         repositoryProxy(LogRepository.class, log),
         repositoryProxy(LaunchRepository.class, launch),
         attachmentService,
-        null, null, null, null
-    );
+        null, null, null, null,
+        new ObjectMapper());
 
     command.executeCommand(new Integration(), new PluginCommandRQ(null, params()));
 

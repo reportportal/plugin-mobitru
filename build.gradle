@@ -3,6 +3,7 @@ plugins {
     id 'java'
     id 'com.gradleup.shadow' version '9.3.1'
     id "com.github.node-gradle.node" version "7.1.0"
+    id("io.freefair.lombok") version "9.5.0"
 }
 
 version = project.findProperty("version") ?: "1.0.0"
@@ -47,8 +48,8 @@ dependencies {
             exclude group: 'org.springframework.modulith', module: 'spring-modulith-apt'
         }
     } else {
-        implementation 'com.github.reportportal:service-api:0141b9e'
-        annotationProcessor('com.github.reportportal:service-api:0141b9e') {
+        implementation 'com.github.reportportal:service-api:382610d'
+        annotationProcessor('com.github.reportportal:service-api:382610d') {
             exclude group: 'org.springframework.modulith', module: 'spring-modulith-apt'
         }
     }
@@ -57,10 +58,6 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-engine'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    compileOnly "org.projectlombok:lombok:${lombokVersion}"
-    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
-    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 }
 
 test {

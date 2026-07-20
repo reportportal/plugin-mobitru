@@ -27,11 +27,13 @@ import com.epam.reportportal.extension.CommonPluginCommand;
 import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.extension.command.ExtensionCommand;
+import com.epam.reportportal.extension.util.MemoizingSupplier;
 import com.epam.reportportal.mobitru.client.MobitruRecordingClient;
 import com.epam.reportportal.mobitru.client.RestClientBuilder;
 import com.epam.reportportal.mobitru.command.GetDevicesCommand;
 import com.epam.reportportal.mobitru.command.LoadExternalAttachmentCommand;
 import com.epam.reportportal.mobitru.command.TestConnectionCommand;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,6 +61,7 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
 
   private final Supplier<RestClientBuilder> restClientSupplier;
   private final Supplier<MobitruRecordingClient> recordingClientSupplier;
+  private final Supplier<ObjectMapper> objectMapperSupplier;
 
   @Autowired
   private BasicTextEncryptor basicEncryptor;
@@ -84,10 +87,14 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
   @Autowired
   private ProjectUserRepository projectUserRepository;
 
+  @Autowired
+  private ObjectMapper objectMapper;
+
   public MobitruExtension() {
     restClientSupplier = new MemoizingSupplier<>(() -> new RestClientBuilder(basicEncryptor));
     recordingClientSupplier = new MemoizingSupplier<>(
         () -> new MobitruRecordingClient(restClientSupplier.get()));
+    objectMapperSupplier = new MemoizingSupplier<>(() -> objectMapper);
   }
 
   @Override
@@ -124,7 +131,7 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
         .put(LoadExternalAttachmentCommand.COMMAND_NAME,
             new LoadExternalAttachmentCommand(recordingClientSupplier.get(), logRepository,
                 launchRepository, attachmentBinaryDataService, projectRepository,
-                organizationUserRepository, organizationRepository, projectUserRepository))
+                organizationUserRepository, organizationRepository, projectUserRepository, objectMapperSupplier.get()))
         .build();
   }
 }

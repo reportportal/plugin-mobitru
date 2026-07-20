@@ -32,9 +32,8 @@ public class Constants {
   public static final String TEST_CONNECTION = "/billing/unit/%s/automation/api/device/ios";
   public static final String GET_DEVICES = "/billing/unit/%s/automation/api/device/%s";
   public static final String GET_MOBILE_RECORDING = "/billing/unit/%s/automation/api/recording/%s";
-  public static final String GET_PLAYWRIGHT_RECORDING = "/wd/hub/session/%s/recording";
+  public static final String GET_PLAYWRIGHT_RECORDING = "/recordings/%s";
   public static final String GET_SELENIUM_RECORDING = "/recordings/%s";
-
 
 
 }
