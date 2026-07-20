@@ -33,6 +33,7 @@ import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.mobitru.client.MobitruRecordingClient;
 import com.epam.reportportal.mobitru.file.ByteArrayMultipartFile;
 import com.epam.reportportal.mobitru.model.RecordingAttachmentData;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
@@ -61,18 +62,21 @@ public class LoadExternalAttachmentCommand extends AbstractExtensionCommand<Void
   private final LogRepository logRepository;
   private final LaunchRepository launchRepository;
   private final AttachmentBinaryDataService attachmentBinaryDataService;
+  private final ObjectMapper objectMapper;
 
   public LoadExternalAttachmentCommand(MobitruRecordingClient recordingClient,
       LogRepository logRepository, LaunchRepository launchRepository,
       AttachmentBinaryDataService attachmentBinaryDataService,
       ProjectRepository projectRepository, OrganizationUserRepository organizationUserRepository,
-      OrganizationRepository organizationRepository, ProjectUserRepository projectUserRepository) {
+      OrganizationRepository organizationRepository, ProjectUserRepository projectUserRepository,
+      ObjectMapper objectMapper) {
     super(projectRepository, organizationUserRepository, organizationRepository,
         projectUserRepository);
     this.recordingClient = recordingClient;
     this.logRepository = logRepository;
     this.launchRepository = launchRepository;
     this.attachmentBinaryDataService = attachmentBinaryDataService;
+    this.objectMapper = objectMapper;
   }
 
   @Override
@@ -126,9 +130,13 @@ public class LoadExternalAttachmentCommand extends AbstractExtensionCommand<Void
     attachmentBinaryDataService.saveFileAndAttachToLog(
         new ByteArrayMultipartFile(resolveMultipartFieldName(fileName), fileName, contentType,
             content),
-        AttachmentMetaInfo.builder().withProjectId(projectId).withLaunchId(launch.getId())
-            .withItemId(resolveTestItemId(params, logEntity)).withLogId(logEntity.getId())
-            .withLaunchUuid(launch.getUuid()).withLogUuid(logEntity.getUuid())
+        AttachmentMetaInfo.builder()
+            .withProjectId(projectId)
+            .withLaunchId(launch.getId())
+            .withItemId(resolveTestItemId(params, logEntity))
+            .withLogId(logEntity.getId())
+            .withLaunchUuid(launch.getUuid())
+            .withLogUuid(logEntity.getUuid())
             .withFileName(fileName)
             .withCreationDate(Optional.ofNullable(logEntity.getLogTime()).orElse(Instant.now()))
             .build());
