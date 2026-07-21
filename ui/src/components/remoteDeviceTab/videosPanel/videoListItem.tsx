@@ -84,9 +84,7 @@ const VideoListItem = ({
       <span className={cx('video-list-item-play')} aria-hidden="true">
         {parse(PlayIcon)}
       </span>
-      <span className={cx('video-list-item-time')}>
-        <span className={cx('video-list-item-abs-time')}>{formatLogTime(video.time)}</span>
-      </span>
+      <span className={cx('video-list-item-time')}>{formatLogTime(video.time)}</span>
       {onJumpToLog && (
         <button
           type="button"
@@ -94,9 +92,7 @@ const VideoListItem = ({
           onClick={handleJumpToClick}
           aria-label={formatMessage(messages.jumpToLog)}
         >
-          <span className={cx('video-list-item-jump-label')}>
-            {formatMessage(messages.jumpToLog)}
-          </span>
+          {formatMessage(messages.jumpToLog)}
           <i className={cx('video-list-item-jump-icon')}>{parse(NavigateArrowIcon)}</i>
         </button>
       )}
