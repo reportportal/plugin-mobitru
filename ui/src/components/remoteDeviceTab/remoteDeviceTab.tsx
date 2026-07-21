@@ -91,7 +91,7 @@ const RemoteDeviceTabInner = ({
         <VideoPreview
           key={playerScopeId}
           videoSrc={videoSrc}
-          loading={videoLoading}
+          loading={listLoading || videoLoading}
           error={videoError}
           hasSelection={selectedLogId !== null}
           selectedLogId={selectedLogId}

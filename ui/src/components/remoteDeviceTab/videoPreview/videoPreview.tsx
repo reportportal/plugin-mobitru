@@ -192,6 +192,14 @@ const VideoPreview = ({
 
   const renderPreviewContent = () => {
     if (!hasSelection) {
+      if (loading) {
+        return (
+          <div className={cx('video-list-loader')}>
+            <BubblesLoader />
+          </div>
+        );
+      }
+
       return (
         <div className={cx('empty')}>
           <SystemMessage mode="info" caption={formatMessage(messages.empty)} />
