@@ -63,7 +63,7 @@ export const useMobitruVideos = ({
   selectedLogId,
 }: UseMobitruVideosParams) => {
   const [videos, setVideos] = useState<MobitruVideoLog[]>([]);
-  const [listLoading, setListLoading] = useState(false);
+  const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState('');
   const [videoError, setVideoError] = useState('');
   const [loadedVideo, setLoadedVideo] = useState<{ logId: number; src: string } | null>(null);
