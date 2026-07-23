@@ -4,7 +4,7 @@ export interface Device {
   id: string;
   name: string;
   version: string;
-  imageUrl: string;
+  imageUrl?: string;
 }
 
 export interface DevicesData {

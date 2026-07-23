@@ -86,7 +86,9 @@ const DeviceCard = ({ device }: DeviceCardProps) => {
         </div>
         <span className={cx('device-version')}>{device.version}</span>
       </div>
-      <img className={cx('device-image')} src={device.imageUrl} alt={device.name} />
+      {device.imageUrl ? (
+        <img className={cx('device-image')} src={device.imageUrl} alt={device.name} />
+      ) : null}
     </button>
   );
 };
@@ -109,6 +111,11 @@ const DeviceGroup = ({ title, devices }: DeviceGroupProps) => {
 
 const EMPTY_DEVICES: DevicesData = { premium: [], available: [] };
 
+interface DevicesCache {
+  scopeKey: string;
+  byPlatform: Partial<Record<Platform, DevicesData>>;
+}
+
 const CloudDevicesPageInner = () => {
   const { formatMessage } = useIntl();
   const { components, selectors, constants, lib, utils } = useExtensionProps();
@@ -116,9 +123,10 @@ const CloudDevicesPageInner = () => {
   const dispatch = useDispatch();
 
   const [activePlatform, setActivePlatform] = useState<Platform>('ios');
-  const [devicesByPlatform, setDevicesByPlatform] = useState<
-    Partial<Record<Platform, DevicesData>>
-  >({});
+  const [devicesCache, setDevicesCache] = useState<DevicesCache>({
+    scopeKey: '',
+    byPlatform: {},
+  });
   const [serviceState, setServiceState] = useState<'loading' | 'ok' | 'error'>('loading');
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -165,7 +173,13 @@ const CloudDevicesPageInner = () => {
   const canUpdateSettings = utils?.canUpdateSettings?.(userRoles) ?? false;
   const { trackEvent } = useTracking();
   const pageViewTracked = useRef(false);
-  const cachedDevices = devicesByPlatform[activePlatform];
+  const devicesScopeKey = [
+    integrationId ?? '',
+    projectInfo.projectId ?? '',
+    activeOrganization?.id ?? '',
+  ].join(':');
+  const cachedDevices =
+    devicesCache.scopeKey === devicesScopeKey ? devicesCache.byPlatform[activePlatform] : undefined;
 
   useEffect(() => {
     if (pageViewTracked.current) return;
@@ -211,9 +225,12 @@ const CloudDevicesPageInner = () => {
           return;
         }
         const items = Array.isArray(response) ? (response as GetDevicesItem[]) : [];
-        setDevicesByPlatform((prev) => ({
-          ...prev,
-          [activePlatform]: groupDevices(items),
+        setDevicesCache((prev) => ({
+          scopeKey: devicesScopeKey,
+          byPlatform: {
+            ...(prev.scopeKey === devicesScopeKey ? prev.byPlatform : {}),
+            [activePlatform]: groupDevices(items),
+          },
         }));
         setServiceState('ok');
       })
@@ -229,6 +246,7 @@ const CloudDevicesPageInner = () => {
     activeOrganization?.id,
     activePlatform,
     cachedDevices,
+    devicesScopeKey,
     integrationId,
     isIntegrated,
     projectInfo.projectId,
@@ -237,9 +255,9 @@ const CloudDevicesPageInner = () => {
   ]);
 
   const handleRefresh = useCallback(() => {
-    setDevicesByPlatform({});
+    setDevicesCache({ scopeKey: devicesScopeKey, byPlatform: {} });
     setRefreshKey((k) => k + 1);
-  }, []);
+  }, [devicesScopeKey]);
   const handleOpenSettings = useCallback(() => {
     trackEvent(CLOUD_DEVICE_PAGE_EVENTS.EMPTY_STATE_OPEN_SETTINGS_CLICK);
     if (organizationSlug && projectSlug && dispatch) {

@@ -31,7 +31,7 @@ const mapToDevice = (item: GetDevicesItem): MappedDevice | null => {
     id: caps.udid,
     name: caps.deviceName || caps.udid,
     version: [caps.platformName, caps.platformVersion].filter(Boolean).join(' '),
-    imageUrl: caps.image ? buildDeviceImageUrl(caps.image) : '',
+    ...(caps.image ? { imageUrl: buildDeviceImageUrl(caps.image) } : {}),
     premium: Boolean(caps.premium),
   };
 };
