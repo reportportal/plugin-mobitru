@@ -20,3 +20,16 @@ export interface DeviceGroupProps {
 export interface DeviceCardProps {
   device: Device;
 }
+
+export interface DeviceCapabilities {
+  platformName?: string;
+  platformVersion?: string;
+  deviceName?: string;
+  udid?: string;
+  premium?: boolean;
+  image?: string;
+}
+
+export interface GetDevicesItem {
+  desiredCapabilities?: DeviceCapabilities;
+}

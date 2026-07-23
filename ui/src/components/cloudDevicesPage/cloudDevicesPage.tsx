@@ -27,19 +27,19 @@ import { useIntl } from 'react-intl';
 import { useDispatch } from 'react-redux';
 import { useTracking } from 'react-tracking';
 import {
-  Device,
   DeviceCardProps,
   DeviceGroupProps,
   DevicesData,
+  GetDevicesItem,
   Platform,
 } from 'types/cloudDevices';
 import type { ExtensionProps } from 'types/extensionProps';
+import { groupDevices } from 'utils/mapCloudDevices';
 
 import { EmptyStateMaintenance } from '../emptyStateMaintenance';
 import { EmptyStateNoIntegration } from '../emptyStateNoIntegration';
 import styles from './cloudDevicesPage.scss';
 import MobitruIcon from './mobitruIcon';
-import { MOCK_ANDROID_DEVICES, MOCK_IOS_DEVICES, type RawDevice } from './mockData';
 
 const cx = classNames.bind(styles);
 
@@ -64,18 +64,6 @@ interface LocationHeaderLayoutProps {
 }
 
 const openInNewTab = () => window.open(MOBITRU_DEVICES_URL, '_blank', 'noopener,noreferrer');
-
-const mapToDevice = (raw: RawDevice): Device => ({
-  id: raw.id,
-  name: raw.name,
-  version: `${raw.platform} ${raw.version}`,
-  imageUrl: raw.image,
-});
-
-const groupRawDevices = (devices: RawDevice[]): DevicesData => ({
-  premium: devices.filter((d) => d.premium).map(mapToDevice),
-  available: devices.filter((d) => !d.premium).map(mapToDevice),
-});
 
 const DeviceCard = ({ device }: DeviceCardProps) => {
   const { trackEvent } = useTracking();
@@ -119,6 +107,8 @@ const DeviceGroup = ({ title, devices }: DeviceGroupProps) => {
   );
 };
 
+const EMPTY_DEVICES: DevicesData = { premium: [], available: [] };
+
 const CloudDevicesPageInner = () => {
   const { formatMessage } = useIntl();
   const { components, selectors, constants, lib, utils } = useExtensionProps();
@@ -126,6 +116,9 @@ const CloudDevicesPageInner = () => {
   const dispatch = useDispatch();
 
   const [activePlatform, setActivePlatform] = useState<Platform>('ios');
+  const [devicesByPlatform, setDevicesByPlatform] = useState<
+    Partial<Record<Platform, DevicesData>>
+  >({});
   const [serviceState, setServiceState] = useState<'loading' | 'ok' | 'error'>('loading');
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -172,6 +165,7 @@ const CloudDevicesPageInner = () => {
   const canUpdateSettings = utils?.canUpdateSettings?.(userRoles) ?? false;
   const { trackEvent } = useTracking();
   const pageViewTracked = useRef(false);
+  const cachedDevices = devicesByPlatform[activePlatform];
 
   useEffect(() => {
     if (pageViewTracked.current) return;
@@ -193,6 +187,11 @@ const CloudDevicesPageInner = () => {
       setServiceState('error');
       return undefined;
     }
+    if (cachedDevices != null) {
+      setServiceState('ok');
+      return undefined;
+    }
+
     let cancelled = false;
     setServiceState('loading');
     utils
@@ -204,20 +203,32 @@ const CloudDevicesPageInner = () => {
             project_id: projectInfo.projectId,
             ...(activeOrganization?.id != null ? { org_id: activeOrganization.id } : {}),
           },
-          arguments: { platform: 'ios' },
+          arguments: { platform: activePlatform },
         },
       })
-      .then(() => {
-        if (!cancelled) setServiceState('ok');
+      .then((response: unknown) => {
+        if (cancelled) {
+          return;
+        }
+        const items = Array.isArray(response) ? (response as GetDevicesItem[]) : [];
+        setDevicesByPlatform((prev) => ({
+          ...prev,
+          [activePlatform]: groupDevices(items),
+        }));
+        setServiceState('ok');
       })
       .catch(() => {
-        if (!cancelled) setServiceState('error');
+        if (!cancelled) {
+          setServiceState('error');
+        }
       });
     return () => {
       cancelled = true;
     };
   }, [
     activeOrganization?.id,
+    activePlatform,
+    cachedDevices,
     integrationId,
     isIntegrated,
     projectInfo.projectId,
@@ -225,7 +236,10 @@ const CloudDevicesPageInner = () => {
     utils,
   ]);
 
-  const handleRefresh = useCallback(() => setRefreshKey((k) => k + 1), []);
+  const handleRefresh = useCallback(() => {
+    setDevicesByPlatform({});
+    setRefreshKey((k) => k + 1);
+  }, []);
   const handleOpenSettings = useCallback(() => {
     trackEvent(CLOUD_DEVICE_PAGE_EVENTS.EMPTY_STATE_OPEN_SETTINGS_CLICK);
     if (organizationSlug && projectSlug && dispatch) {
@@ -301,11 +315,7 @@ const CloudDevicesPageInner = () => {
     projectSlug,
   ]);
 
-  const currentDevices = useMemo(
-    () => groupRawDevices(activePlatform === 'ios' ? MOCK_IOS_DEVICES : MOCK_ANDROID_DEVICES),
-    [activePlatform]
-  );
-
+  const currentDevices = cachedDevices ?? EMPTY_DEVICES;
   const hasDevices = currentDevices.premium.length > 0 || currentDevices.available.length > 0;
 
   const LocationHeaderLayout = components?.LocationHeaderLayout as
