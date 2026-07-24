@@ -107,12 +107,35 @@ const VideoPreview = ({
   const { trackEvent } = useTracking();
   const plyrInstanceRef = useRef<PlyrInstance | null>(null);
   const pauseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pauseGenerationRef = useRef(0);
+  const pendingPlayOriginRef = useRef<'video_table' | 'player'>('player');
   const shouldAutoplayRef = useRef(shouldAutoplay);
   const loadingRef = useRef(loading);
   const [playerVersion, setPlayerVersion] = useState(0);
   const {
     utils: { URLS },
   } = useExtensionProps();
+
+  const clearPauseTimer = useCallback(() => {
+    if (pauseTimerRef.current !== null) {
+      clearTimeout(pauseTimerRef.current);
+      pauseTimerRef.current = null;
+    }
+  }, []);
+
+  const invalidatePendingPause = useCallback(() => {
+    pauseGenerationRef.current += 1;
+    clearPauseTimer();
+  }, [clearPauseTimer]);
+
+  const capturePlayOrigin = useCallback(() => {
+    pendingPlayOriginRef.current = consumePlayFromVideoTable() ? 'video_table' : 'player';
+  }, [consumePlayFromVideoTable]);
+
+  const resetPlayOrigin = useCallback(() => {
+    pendingPlayOriginRef.current = 'player';
+    clearPlayFromVideoTable();
+  }, [clearPlayFromVideoTable]);
 
   useEffect(() => {
     shouldAutoplayRef.current = shouldAutoplay;
@@ -121,6 +144,16 @@ const VideoPreview = ({
   useEffect(() => {
     loadingRef.current = loading;
   }, [loading]);
+
+  useEffect(() => {
+    invalidatePendingPause();
+  }, [invalidatePendingPause, selectedLogId]);
+
+  useEffect(() => {
+    if (shouldAutoplay || playbackAction?.type === 'play') {
+      invalidatePendingPause();
+    }
+  }, [invalidatePendingPause, playbackAction, shouldAutoplay]);
 
   const setPlayerRef = useCallback((api: APITypes | null) => {
     const player = api?.plyr;
@@ -144,18 +177,12 @@ const VideoPreview = ({
       return undefined;
     }
 
-    const clearPauseTimer = () => {
-      if (pauseTimerRef.current !== null) {
-        clearTimeout(pauseTimerRef.current);
-        pauseTimerRef.current = null;
-      }
-    };
-
     const handlePlay = () => {
-      clearPauseTimer();
-      const fromVideoTable = consumePlayFromVideoTable();
+      invalidatePendingPause();
+      const origin = pendingPlayOriginRef.current;
+      pendingPlayOriginRef.current = 'player';
       trackEvent(
-        fromVideoTable
+        origin === 'video_table'
           ? LOG_PAGE_EVENTS.PLAY_MOBITRU_VIDEO_FROM_TABLE
           : LOG_PAGE_EVENTS.PLAY_MOBITRU_VIDEO
       );
@@ -167,13 +194,17 @@ const VideoPreview = ({
       }
 
       clearPauseTimer();
+      const generation = pauseGenerationRef.current;
       pauseTimerRef.current = setTimeout(() => {
         pauseTimerRef.current = null;
+        if (generation !== pauseGenerationRef.current) {
+          return;
+        }
         onPlayingChange(false);
       }, PAUSE_DEBOUNCE_MS);
     };
     const handleEnded = () => {
-      clearPauseTimer();
+      invalidatePendingPause();
       onPlayingChange(false);
     };
 
@@ -189,7 +220,7 @@ const VideoPreview = ({
         player.off('ended', handleEnded);
       }
     };
-  }, [consumePlayFromVideoTable, onPlayingChange, playerVersion, trackEvent]);
+  }, [clearPauseTimer, invalidatePendingPause, onPlayingChange, playerVersion, trackEvent]);
 
   const playerOptions = useMemo(
     (): PlyrOptions => ({
@@ -219,10 +250,16 @@ const VideoPreview = ({
 
     let cancelled = false;
     let attachedPlayer: PlyrInstance | null = null;
+    let originCaptured = false;
 
     const startPlayback = () => {
       if (cancelled || !attachedPlayer) {
         return;
+      }
+
+      if (!originCaptured) {
+        capturePlayOrigin();
+        originCaptured = true;
       }
 
       const playResult = attachedPlayer.play();
@@ -231,7 +268,7 @@ const VideoPreview = ({
         playResult
           .catch(() => {
             if (!cancelled) {
-              clearPlayFromVideoTable();
+              resetPlayOrigin();
               onPlayingChange(false);
             }
           })
@@ -268,12 +305,13 @@ const VideoPreview = ({
       attachedPlayer = null;
     };
   }, [
-    clearPlayFromVideoTable,
+    capturePlayOrigin,
     error,
     loading,
     onAutoplayHandled,
     onPlayingChange,
     playerVersion,
+    resetPlayOrigin,
     selectedLogId,
     shouldAutoplay,
     videoSrc,
@@ -285,7 +323,7 @@ const VideoPreview = ({
     }
 
     if (error || !hasSelection) {
-      clearPlayFromVideoTable();
+      resetPlayOrigin();
       onPlaybackActionHandled();
       return undefined;
     }
@@ -308,13 +346,14 @@ const VideoPreview = ({
 
     let cancelled = false;
 
+    capturePlayOrigin();
     const playResult = player.play();
 
     if (playResult && typeof playResult.then === 'function') {
       playResult
         .catch(() => {
           if (!cancelled) {
-            clearPlayFromVideoTable();
+            resetPlayOrigin();
             onPlayingChange(false);
           }
         })
@@ -332,7 +371,7 @@ const VideoPreview = ({
     onPlaybackActionHandled();
     return undefined;
   }, [
-    clearPlayFromVideoTable,
+    capturePlayOrigin,
     error,
     hasSelection,
     loading,
@@ -340,6 +379,7 @@ const VideoPreview = ({
     onPlayingChange,
     playbackAction,
     playerVersion,
+    resetPlayOrigin,
     videoSrc,
   ]);
 
