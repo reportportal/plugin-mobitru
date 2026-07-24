@@ -4,7 +4,7 @@ export interface Device {
   id: string;
   name: string;
   version: string;
-  imageUrl: string;
+  imageUrl?: string;
 }
 
 export interface DevicesData {
@@ -19,4 +19,17 @@ export interface DeviceGroupProps {
 
 export interface DeviceCardProps {
   device: Device;
+}
+
+export interface DeviceCapabilities {
+  platformName?: string;
+  platformVersion?: string;
+  deviceName?: string;
+  udid?: string;
+  premium?: boolean;
+  image?: string;
+}
+
+export interface GetDevicesItem {
+  desiredCapabilities?: DeviceCapabilities;
 }
