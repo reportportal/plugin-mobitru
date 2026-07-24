@@ -18,6 +18,7 @@ import classNames from 'classnames/bind';
 import { MobitruVideoLog } from 'hooks/useMobitruVideos';
 import parse from 'html-react-parser';
 import NavigateArrowIcon from 'icons/navigate-arrow.svg';
+import PauseIcon from 'icons/pause.svg';
 import PlayIcon from 'icons/play.svg';
 import React, { KeyboardEvent, MouseEvent } from 'react';
 import { defineMessages, useIntl } from 'react-intl';
@@ -32,19 +33,31 @@ const messages = defineMessages({
     id: 'LogTab.jumpToLog',
     defaultMessage: 'Jump to Log',
   },
+  playVideo: {
+    id: 'LogTab.playVideo',
+    defaultMessage: 'Play video',
+  },
+  pauseVideo: {
+    id: 'LogTab.pauseVideo',
+    defaultMessage: 'Pause video',
+  },
 });
 
 interface VideoListItemProps {
   video: MobitruVideoLog;
   isSelected: boolean;
+  isPlaying: boolean;
   onActivate: (logId: number) => void;
+  onTogglePlayback: () => void;
   onJumpToLog?: (logId: number, itemId: number) => void;
 }
 
 const VideoListItem = ({
   video,
   isSelected,
+  isPlaying,
   onActivate,
+  onTogglePlayback,
   onJumpToLog = undefined,
 }: VideoListItemProps) => {
   const { formatMessage } = useIntl();
@@ -68,9 +81,35 @@ const VideoListItem = ({
     }
   };
 
+  const handlePlaybackClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onTogglePlayback();
+  };
+
   const handleJumpToClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onJumpToLog?.(video.id, video.itemId);
+  };
+
+  const renderPlayIcon = () => {
+    if (isSelected) {
+      return (
+        <button
+          type="button"
+          className={cx('video-list-item-play', 'video-list-item-play--control')}
+          onClick={handlePlaybackClick}
+          aria-label={formatMessage(isPlaying ? messages.pauseVideo : messages.playVideo)}
+        >
+          {parse(isPlaying ? PauseIcon : PlayIcon)}
+        </button>
+      );
+    }
+
+    return (
+      <span className={cx('video-list-item-play')} aria-hidden="true">
+        {parse(PlayIcon)}
+      </span>
+    );
   };
 
   return (
@@ -81,9 +120,7 @@ const VideoListItem = ({
       onClick={isSelected ? undefined : handleRowClick}
       onKeyDown={isSelected ? undefined : handleRowKeyDown}
     >
-      <span className={cx('video-list-item-play')} aria-hidden="true">
-        {parse(PlayIcon)}
-      </span>
+      {renderPlayIcon()}
       <span className={cx('video-list-item-time')}>{formatLogTime(video.time)}</span>
       {onJumpToLog && (
         <button type="button" className={cx('video-list-item-jump')} onClick={handleJumpToClick}>

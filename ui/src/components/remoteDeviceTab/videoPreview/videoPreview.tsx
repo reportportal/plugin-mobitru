@@ -29,6 +29,8 @@ import styles from '../remoteDeviceTab.scss';
 
 const cx = classNames.bind(styles);
 
+const PAUSE_DEBOUNCE_MS = 75;
+
 const BASE_PLAYER_OPTIONS: Omit<PlyrOptions, 'iconUrl'> = {
   controls: [
     'play-large',
@@ -67,6 +69,11 @@ const messages = defineMessages({
   },
 });
 
+export interface PlaybackAction {
+  type: 'play' | 'pause';
+  id: number;
+}
+
 interface VideoPreviewProps {
   videoSrc: string;
   loading: boolean;
@@ -75,6 +82,11 @@ interface VideoPreviewProps {
   selectedLogId: number | null;
   shouldAutoplay: boolean;
   onAutoplayHandled: () => void;
+  onPlayingChange: (isPlaying: boolean) => void;
+  playbackAction: PlaybackAction | null;
+  onPlaybackActionHandled: () => void;
+  consumePlayFromVideoTable: () => boolean;
+  clearPlayFromVideoTable: () => void;
 }
 
 const VideoPreview = ({
@@ -85,37 +97,99 @@ const VideoPreview = ({
   selectedLogId,
   shouldAutoplay,
   onAutoplayHandled,
+  onPlayingChange,
+  playbackAction,
+  onPlaybackActionHandled,
+  consumePlayFromVideoTable,
+  clearPlayFromVideoTable,
 }: VideoPreviewProps) => {
   const { formatMessage } = useIntl();
   const { trackEvent } = useTracking();
   const plyrInstanceRef = useRef<PlyrInstance | null>(null);
+  const pauseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shouldAutoplayRef = useRef(shouldAutoplay);
+  const loadingRef = useRef(loading);
   const [playerVersion, setPlayerVersion] = useState(0);
   const {
     utils: { URLS },
   } = useExtensionProps();
 
-  const handlePlayVideo = useCallback(() => {
-    trackEvent(LOG_PAGE_EVENTS.PLAY_MOBITRU_VIDEO);
-  }, [trackEvent]);
+  useEffect(() => {
+    shouldAutoplayRef.current = shouldAutoplay;
+  }, [shouldAutoplay]);
 
-  const setPlayerRef = useCallback(
-    (api: APITypes | null) => {
-      const player = api?.plyr;
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
 
-      if (player && typeof player.on === 'function') {
-        if (plyrInstanceRef.current !== player) {
-          player.on('play', handlePlayVideo);
-          plyrInstanceRef.current = player;
-          setPlayerVersion((version) => version + 1);
-        }
+  const setPlayerRef = useCallback((api: APITypes | null) => {
+    const player = api?.plyr;
 
+    if (player && typeof player.on === 'function') {
+      if (plyrInstanceRef.current !== player) {
+        plyrInstanceRef.current = player;
+        setPlayerVersion((version) => version + 1);
+      }
+
+      return;
+    }
+
+    plyrInstanceRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    const player = plyrInstanceRef.current;
+
+    if (!player || typeof player.on !== 'function') {
+      return undefined;
+    }
+
+    const clearPauseTimer = () => {
+      if (pauseTimerRef.current !== null) {
+        clearTimeout(pauseTimerRef.current);
+        pauseTimerRef.current = null;
+      }
+    };
+
+    const handlePlay = () => {
+      clearPauseTimer();
+      const fromVideoTable = consumePlayFromVideoTable();
+      trackEvent(
+        fromVideoTable
+          ? LOG_PAGE_EVENTS.PLAY_MOBITRU_VIDEO_FROM_TABLE
+          : LOG_PAGE_EVENTS.PLAY_MOBITRU_VIDEO
+      );
+      onPlayingChange(true);
+    };
+    const handlePause = () => {
+      if (shouldAutoplayRef.current || loadingRef.current) {
         return;
       }
 
-      plyrInstanceRef.current = null;
-    },
-    [handlePlayVideo]
-  );
+      clearPauseTimer();
+      pauseTimerRef.current = setTimeout(() => {
+        pauseTimerRef.current = null;
+        onPlayingChange(false);
+      }, PAUSE_DEBOUNCE_MS);
+    };
+    const handleEnded = () => {
+      clearPauseTimer();
+      onPlayingChange(false);
+    };
+
+    player.on('play', handlePlay);
+    player.on('pause', handlePause);
+    player.on('ended', handleEnded);
+
+    return () => {
+      clearPauseTimer();
+      if (typeof player.off === 'function') {
+        player.off('play', handlePlay);
+        player.off('pause', handlePause);
+        player.off('ended', handleEnded);
+      }
+    };
+  }, [consumePlayFromVideoTable, onPlayingChange, playerVersion, trackEvent]);
 
   const playerOptions = useMemo(
     (): PlyrOptions => ({
@@ -155,7 +229,12 @@ const VideoPreview = ({
 
       if (playResult && typeof playResult.then === 'function') {
         playResult
-          .catch(() => undefined)
+          .catch(() => {
+            if (!cancelled) {
+              clearPlayFromVideoTable();
+              onPlayingChange(false);
+            }
+          })
           .then(() => {
             if (!cancelled) {
               onAutoplayHandled();
@@ -188,7 +267,81 @@ const VideoPreview = ({
       cancelled = true;
       attachedPlayer = null;
     };
-  }, [error, loading, onAutoplayHandled, playerVersion, selectedLogId, shouldAutoplay, videoSrc]);
+  }, [
+    clearPlayFromVideoTable,
+    error,
+    loading,
+    onAutoplayHandled,
+    onPlayingChange,
+    playerVersion,
+    selectedLogId,
+    shouldAutoplay,
+    videoSrc,
+  ]);
+
+  useEffect(() => {
+    if (!playbackAction) {
+      return undefined;
+    }
+
+    if (error || !hasSelection) {
+      clearPlayFromVideoTable();
+      onPlaybackActionHandled();
+      return undefined;
+    }
+
+    if (!videoSrc || loading) {
+      return undefined;
+    }
+
+    const player = plyrInstanceRef.current;
+
+    if (!player) {
+      return undefined;
+    }
+
+    if (playbackAction.type === 'pause') {
+      player.pause();
+      onPlaybackActionHandled();
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const playResult = player.play();
+
+    if (playResult && typeof playResult.then === 'function') {
+      playResult
+        .catch(() => {
+          if (!cancelled) {
+            clearPlayFromVideoTable();
+            onPlayingChange(false);
+          }
+        })
+        .then(() => {
+          if (!cancelled) {
+            onPlaybackActionHandled();
+          }
+        });
+
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    onPlaybackActionHandled();
+    return undefined;
+  }, [
+    clearPlayFromVideoTable,
+    error,
+    hasSelection,
+    loading,
+    onPlaybackActionHandled,
+    onPlayingChange,
+    playbackAction,
+    playerVersion,
+    videoSrc,
+  ]);
 
   const renderPreviewContent = () => {
     if (!hasSelection) {
