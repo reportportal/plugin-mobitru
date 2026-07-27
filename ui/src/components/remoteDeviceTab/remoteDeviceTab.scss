@@ -106,6 +106,13 @@
   color: var(--rp-ui-base-topaz);
 }
 
+.video-list-item-play--control {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
 .video-list-item-play svg {
   display: block;
   width: 16px;

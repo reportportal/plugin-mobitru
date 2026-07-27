@@ -29,6 +29,8 @@ import styles from '../remoteDeviceTab.scss';
 
 const cx = classNames.bind(styles);
 
+const PAUSE_DEBOUNCE_MS = 75;
+
 const BASE_PLAYER_OPTIONS: Omit<PlyrOptions, 'iconUrl'> = {
   controls: [
     'play-large',
@@ -67,6 +69,11 @@ const messages = defineMessages({
   },
 });
 
+export interface PlaybackAction {
+  type: 'play' | 'pause';
+  id: number;
+}
+
 interface VideoPreviewProps {
   videoSrc: string;
   loading: boolean;
@@ -75,6 +82,11 @@ interface VideoPreviewProps {
   selectedLogId: number | null;
   shouldAutoplay: boolean;
   onAutoplayHandled: () => void;
+  onPlayingChange: (isPlaying: boolean) => void;
+  playbackAction: PlaybackAction | null;
+  onPlaybackActionHandled: () => void;
+  consumePlayFromVideoTable: () => boolean;
+  clearPlayFromVideoTable: () => void;
 }
 
 const VideoPreview = ({
@@ -85,37 +97,130 @@ const VideoPreview = ({
   selectedLogId,
   shouldAutoplay,
   onAutoplayHandled,
+  onPlayingChange,
+  playbackAction,
+  onPlaybackActionHandled,
+  consumePlayFromVideoTable,
+  clearPlayFromVideoTable,
 }: VideoPreviewProps) => {
   const { formatMessage } = useIntl();
   const { trackEvent } = useTracking();
   const plyrInstanceRef = useRef<PlyrInstance | null>(null);
+  const pauseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pauseGenerationRef = useRef(0);
+  const pendingPlayOriginRef = useRef<'video_table' | 'player'>('player');
+  const shouldAutoplayRef = useRef(shouldAutoplay);
+  const loadingRef = useRef(loading);
   const [playerVersion, setPlayerVersion] = useState(0);
   const {
     utils: { URLS },
   } = useExtensionProps();
 
-  const handlePlayVideo = useCallback(() => {
-    trackEvent(LOG_PAGE_EVENTS.PLAY_MOBITRU_VIDEO);
-  }, [trackEvent]);
+  const clearPauseTimer = useCallback(() => {
+    if (pauseTimerRef.current !== null) {
+      clearTimeout(pauseTimerRef.current);
+      pauseTimerRef.current = null;
+    }
+  }, []);
 
-  const setPlayerRef = useCallback(
-    (api: APITypes | null) => {
-      const player = api?.plyr;
+  const invalidatePendingPause = useCallback(() => {
+    pauseGenerationRef.current += 1;
+    clearPauseTimer();
+  }, [clearPauseTimer]);
 
-      if (player && typeof player.on === 'function') {
-        if (plyrInstanceRef.current !== player) {
-          player.on('play', handlePlayVideo);
-          plyrInstanceRef.current = player;
-          setPlayerVersion((version) => version + 1);
-        }
+  const capturePlayOrigin = useCallback(() => {
+    pendingPlayOriginRef.current = consumePlayFromVideoTable() ? 'video_table' : 'player';
+  }, [consumePlayFromVideoTable]);
 
+  const resetPlayOrigin = useCallback(() => {
+    pendingPlayOriginRef.current = 'player';
+    clearPlayFromVideoTable();
+  }, [clearPlayFromVideoTable]);
+
+  useEffect(() => {
+    shouldAutoplayRef.current = shouldAutoplay;
+  }, [shouldAutoplay]);
+
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
+
+  useEffect(() => {
+    invalidatePendingPause();
+  }, [invalidatePendingPause, selectedLogId]);
+
+  useEffect(() => {
+    if (shouldAutoplay || playbackAction?.type === 'play') {
+      invalidatePendingPause();
+    }
+  }, [invalidatePendingPause, playbackAction, shouldAutoplay]);
+
+  const setPlayerRef = useCallback((api: APITypes | null) => {
+    const player = api?.plyr;
+
+    if (player && typeof player.on === 'function') {
+      if (plyrInstanceRef.current !== player) {
+        plyrInstanceRef.current = player;
+        setPlayerVersion((version) => version + 1);
+      }
+
+      return;
+    }
+
+    plyrInstanceRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    const player = plyrInstanceRef.current;
+
+    if (!player || typeof player.on !== 'function') {
+      return undefined;
+    }
+
+    const handlePlay = () => {
+      invalidatePendingPause();
+      const origin = pendingPlayOriginRef.current;
+      pendingPlayOriginRef.current = 'player';
+      trackEvent(
+        origin === 'video_table'
+          ? LOG_PAGE_EVENTS.PLAY_MOBITRU_VIDEO_FROM_TABLE
+          : LOG_PAGE_EVENTS.PLAY_MOBITRU_VIDEO
+      );
+      onPlayingChange(true);
+    };
+    const handlePause = () => {
+      if (shouldAutoplayRef.current || loadingRef.current) {
         return;
       }
 
-      plyrInstanceRef.current = null;
-    },
-    [handlePlayVideo]
-  );
+      clearPauseTimer();
+      const generation = pauseGenerationRef.current;
+      pauseTimerRef.current = setTimeout(() => {
+        pauseTimerRef.current = null;
+        if (generation !== pauseGenerationRef.current) {
+          return;
+        }
+        onPlayingChange(false);
+      }, PAUSE_DEBOUNCE_MS);
+    };
+    const handleEnded = () => {
+      invalidatePendingPause();
+      onPlayingChange(false);
+    };
+
+    player.on('play', handlePlay);
+    player.on('pause', handlePause);
+    player.on('ended', handleEnded);
+
+    return () => {
+      clearPauseTimer();
+      if (typeof player.off === 'function') {
+        player.off('play', handlePlay);
+        player.off('pause', handlePause);
+        player.off('ended', handleEnded);
+      }
+    };
+  }, [clearPauseTimer, invalidatePendingPause, onPlayingChange, playerVersion, trackEvent]);
 
   const playerOptions = useMemo(
     (): PlyrOptions => ({
@@ -145,17 +250,28 @@ const VideoPreview = ({
 
     let cancelled = false;
     let attachedPlayer: PlyrInstance | null = null;
+    let originCaptured = false;
 
     const startPlayback = () => {
       if (cancelled || !attachedPlayer) {
         return;
       }
 
+      if (!originCaptured) {
+        capturePlayOrigin();
+        originCaptured = true;
+      }
+
       const playResult = attachedPlayer.play();
 
       if (playResult && typeof playResult.then === 'function') {
         playResult
-          .catch(() => undefined)
+          .catch(() => {
+            if (!cancelled) {
+              resetPlayOrigin();
+              onPlayingChange(false);
+            }
+          })
           .then(() => {
             if (!cancelled) {
               onAutoplayHandled();
@@ -188,7 +304,84 @@ const VideoPreview = ({
       cancelled = true;
       attachedPlayer = null;
     };
-  }, [error, loading, onAutoplayHandled, playerVersion, selectedLogId, shouldAutoplay, videoSrc]);
+  }, [
+    capturePlayOrigin,
+    error,
+    loading,
+    onAutoplayHandled,
+    onPlayingChange,
+    playerVersion,
+    resetPlayOrigin,
+    selectedLogId,
+    shouldAutoplay,
+    videoSrc,
+  ]);
+
+  useEffect(() => {
+    if (!playbackAction) {
+      return undefined;
+    }
+
+    if (error || !hasSelection) {
+      resetPlayOrigin();
+      onPlaybackActionHandled();
+      return undefined;
+    }
+
+    if (!videoSrc || loading) {
+      return undefined;
+    }
+
+    const player = plyrInstanceRef.current;
+
+    if (!player) {
+      return undefined;
+    }
+
+    if (playbackAction.type === 'pause') {
+      player.pause();
+      onPlaybackActionHandled();
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    capturePlayOrigin();
+    const playResult = player.play();
+
+    if (playResult && typeof playResult.then === 'function') {
+      playResult
+        .catch(() => {
+          if (!cancelled) {
+            resetPlayOrigin();
+            onPlayingChange(false);
+          }
+        })
+        .then(() => {
+          if (!cancelled) {
+            onPlaybackActionHandled();
+          }
+        });
+
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    onPlaybackActionHandled();
+    return undefined;
+  }, [
+    capturePlayOrigin,
+    error,
+    hasSelection,
+    loading,
+    onPlaybackActionHandled,
+    onPlayingChange,
+    playbackAction,
+    playerVersion,
+    resetPlayOrigin,
+    videoSrc,
+  ]);
 
   const renderPreviewContent = () => {
     if (!hasSelection) {

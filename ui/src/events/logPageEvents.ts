@@ -23,4 +23,9 @@ export const LOG_PAGE_EVENTS = {
     ...getBasicClickEventParameters(LOG_PAGE),
     element_name: 'play_video_mobitru',
   },
+  PLAY_MOBITRU_VIDEO_FROM_TABLE: {
+    ...getBasicClickEventParameters(LOG_PAGE),
+    element_name: 'play_video_mobitru',
+    place: 'video_table',
+  },
 };

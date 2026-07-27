@@ -18,11 +18,11 @@ import classNames from 'classnames/bind';
 import { RpAttribute } from 'extensionProps/common';
 import { ExtensionPropsContext } from 'hooks/useExtensionProps';
 import { useMobitruVideos } from 'hooks/useMobitruVideos';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { ExtensionProps } from 'types/extensionProps';
 
 import styles from './remoteDeviceTab.scss';
-import { VideoPreview } from './videoPreview/videoPreview';
+import { PlaybackAction, VideoPreview } from './videoPreview/videoPreview';
 import { VideosPanel } from './videosPanel/videosPanel';
 
 const cx = classNames.bind(styles);
@@ -47,6 +47,10 @@ const RemoteDeviceTabInner = ({
 }: LogTabProps) => {
   const [selectedLogId, setSelectedLogId] = useState<number | null>(null);
   const [shouldAutoplay, setShouldAutoplay] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackAction, setPlaybackAction] = useState<PlaybackAction | null>(null);
+  const playbackActionIdRef = useRef(0);
+  const playFromVideoTableRef = useRef(false);
 
   const { videos, listLoading, listError, videoSrc, videoLoading, videoError } = useMobitruVideos({
     activeRetryPath: activeRetry.path,
@@ -57,22 +61,68 @@ const RemoteDeviceTabInner = ({
   useEffect(() => {
     setSelectedLogId(null);
     setShouldAutoplay(false);
+    setIsPlaying(false);
+    setPlaybackAction(null);
+    playFromVideoTableRef.current = false;
   }, [activeRetry.id, logItem.id]);
 
   useEffect(() => {
     if (!listLoading && videos.length && selectedLogId === null) {
       setSelectedLogId(videos[0].id);
       setShouldAutoplay(false);
+      setIsPlaying(false);
     }
   }, [listLoading, selectedLogId, videos]);
 
+  useEffect(() => {
+    setPlaybackAction(null);
+  }, [selectedLogId]);
+
   const handleActivateVideo = useCallback((logId: number) => {
+    playFromVideoTableRef.current = true;
     setSelectedLogId(logId);
     setShouldAutoplay(true);
+    setIsPlaying(true);
   }, []);
 
   const handleAutoplayHandled = useCallback(() => {
     setShouldAutoplay(false);
+  }, []);
+
+  const handlePlayingChange = useCallback((playing: boolean) => {
+    setIsPlaying(playing);
+  }, []);
+
+  const handleTogglePlayback = useCallback(() => {
+    playbackActionIdRef.current += 1;
+    const shouldPause = isPlaying || shouldAutoplay;
+
+    if (shouldPause) {
+      setShouldAutoplay(false);
+      setIsPlaying(false);
+    } else {
+      playFromVideoTableRef.current = true;
+      setIsPlaying(true);
+    }
+
+    setPlaybackAction({
+      type: shouldPause ? 'pause' : 'play',
+      id: playbackActionIdRef.current,
+    });
+  }, [isPlaying, shouldAutoplay]);
+
+  const handlePlaybackActionHandled = useCallback(() => {
+    setPlaybackAction(null);
+  }, []);
+
+  const consumePlayFromVideoTable = useCallback(() => {
+    const fromVideoTable = playFromVideoTableRef.current;
+    playFromVideoTableRef.current = false;
+    return fromVideoTable;
+  }, []);
+
+  const clearPlayFromVideoTable = useCallback(() => {
+    playFromVideoTableRef.current = false;
   }, []);
 
   const playerScopeId = `${logItem.id}-${activeRetry.id}`;
@@ -85,7 +135,9 @@ const RemoteDeviceTabInner = ({
           loading={listLoading}
           listError={listError}
           selectedLogId={selectedLogId}
+          isPlaying={isPlaying || shouldAutoplay}
           onActivate={handleActivateVideo}
+          onTogglePlayback={handleTogglePlayback}
           onJumpToLog={onJumpToLog}
         />
         <VideoPreview
@@ -97,6 +149,11 @@ const RemoteDeviceTabInner = ({
           selectedLogId={selectedLogId}
           shouldAutoplay={shouldAutoplay}
           onAutoplayHandled={handleAutoplayHandled}
+          onPlayingChange={handlePlayingChange}
+          playbackAction={playbackAction}
+          onPlaybackActionHandled={handlePlaybackActionHandled}
+          consumePlayFromVideoTable={consumePlayFromVideoTable}
+          clearPlayFromVideoTable={clearPlayFromVideoTable}
         />
       </div>
     </div>

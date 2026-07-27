@@ -57,7 +57,9 @@ interface VideosPanelProps {
   loading: boolean;
   listError: string;
   selectedLogId: number | null;
+  isPlaying: boolean;
   onActivate: (logId: number) => void;
+  onTogglePlayback: () => void;
   onJumpToLog?: (logId: number, itemId: number) => void;
 }
 
@@ -66,7 +68,9 @@ const VideosPanel = ({
   loading,
   listError,
   selectedLogId,
+  isPlaying,
   onActivate,
+  onTogglePlayback,
   onJumpToLog = undefined,
 }: VideosPanelProps) => {
   const { formatMessage } = useIntl();
@@ -119,7 +123,9 @@ const VideosPanel = ({
             key={video.id}
             video={video}
             isSelected={video.id === selectedLogId}
+            isPlaying={isPlaying && video.id === selectedLogId}
             onActivate={onActivate}
+            onTogglePlayback={onTogglePlayback}
             onJumpToLog={onJumpToLog}
           />
         ))}
