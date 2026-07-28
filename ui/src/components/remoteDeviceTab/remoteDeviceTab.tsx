@@ -135,7 +135,22 @@ const RemoteDeviceTabInner = ({
     playFromVideoTableRef.current = false;
   }, []);
 
+  useEffect(() => {
+    const container = columnsRef.current;
+    if (!container) return undefined;
+    const observer = new ResizeObserver(() => {
+      setLeftWidthPx((prev) => {
+        if (prev === null) return null;
+        const maxLeft = container.offsetWidth - SPLITTER_WIDTH - MIN_PANEL_WIDTH;
+        return Math.max(MIN_PANEL_WIDTH, Math.min(maxLeft, prev));
+      });
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
   const handleSplitterPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
     const container = columnsRef.current;
     if (!container) return;
     e.preventDefault();
@@ -156,8 +171,11 @@ const RemoteDeviceTabInner = ({
   }, []);
 
   const handleSplitterPointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    setIsDragging(false);
     e.currentTarget.releasePointerCapture(e.pointerId);
+  }, []);
+
+  const handleSplitterLostCapture = useCallback(() => {
+    setIsDragging(false);
   }, []);
 
   const playerScopeId = `${logItem.id}-${activeRetry.id}`;
@@ -188,6 +206,7 @@ const RemoteDeviceTabInner = ({
           onPointerDown={handleSplitterPointerDown}
           onPointerMove={handleSplitterPointerMove}
           onPointerUp={handleSplitterPointerUp}
+          onLostPointerCapture={handleSplitterLostCapture}
         />
         <div className={cx('right-panel')}>
           <VideoPreview
