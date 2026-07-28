@@ -39,6 +39,9 @@ interface LogTabProps {
   onJumpToLog?: (logId: number, itemId: number) => void;
 }
 
+const MIN_PANEL_WIDTH = 300;
+const SPLITTER_WIDTH = 8;
+
 const RemoteDeviceTabInner = ({
   logItem,
   activeRetry,
@@ -51,6 +54,13 @@ const RemoteDeviceTabInner = ({
   const [playbackAction, setPlaybackAction] = useState<PlaybackAction | null>(null);
   const playbackActionIdRef = useRef(0);
   const playFromVideoTableRef = useRef(false);
+
+  const columnsRef = useRef<HTMLDivElement>(null);
+  const leftPanelRef = useRef<HTMLDivElement>(null);
+  const [leftWidthPx, setLeftWidthPx] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartX = useRef(0);
+  const dragStartWidth = useRef(0);
 
   const { videos, listLoading, listError, videoSrc, videoLoading, videoError } = useMobitruVideos({
     activeRetryPath: activeRetry.path,
@@ -125,36 +135,77 @@ const RemoteDeviceTabInner = ({
     playFromVideoTableRef.current = false;
   }, []);
 
+  const handleSplitterPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    const container = columnsRef.current;
+    if (!container) return;
+    e.preventDefault();
+    dragStartX.current = e.clientX;
+    dragStartWidth.current = leftPanelRef.current?.offsetWidth ?? container.offsetWidth * 0.41;
+    setIsDragging(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }, []);
+
+  const handleSplitterPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+    const container = columnsRef.current;
+    if (!container) return;
+    const maxLeft = container.offsetWidth - SPLITTER_WIDTH - MIN_PANEL_WIDTH;
+    const delta = e.clientX - dragStartX.current;
+    const newWidth = Math.max(MIN_PANEL_WIDTH, Math.min(maxLeft, dragStartWidth.current + delta));
+    setLeftWidthPx(newWidth);
+  }, []);
+
+  const handleSplitterPointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    setIsDragging(false);
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  }, []);
+
   const playerScopeId = `${logItem.id}-${activeRetry.id}`;
 
   return (
     <div className={cx('root')}>
-      <div className={cx('columns')}>
-        <VideosPanel
-          videos={videos}
-          loading={listLoading}
-          listError={listError}
-          selectedLogId={selectedLogId}
-          isPlaying={isPlaying || shouldAutoplay}
-          onActivate={handleActivateVideo}
-          onTogglePlayback={handleTogglePlayback}
-          onJumpToLog={onJumpToLog}
+      <div className={cx('columns', { 'columns--dragging': isDragging })} ref={columnsRef}>
+        <div
+          ref={leftPanelRef}
+          className={cx('left-panel')}
+          style={leftWidthPx !== null ? { flexBasis: leftWidthPx } : undefined}
+        >
+          <VideosPanel
+            videos={videos}
+            loading={listLoading}
+            listError={listError}
+            selectedLogId={selectedLogId}
+            isPlaying={isPlaying || shouldAutoplay}
+            onActivate={handleActivateVideo}
+            onTogglePlayback={handleTogglePlayback}
+            onJumpToLog={onJumpToLog}
+          />
+        </div>
+        <div
+          className={cx('columns-splitter')}
+          role="separator"
+          aria-label="Resize columns"
+          onPointerDown={handleSplitterPointerDown}
+          onPointerMove={handleSplitterPointerMove}
+          onPointerUp={handleSplitterPointerUp}
         />
-        <VideoPreview
-          key={playerScopeId}
-          videoSrc={videoSrc}
-          loading={listLoading || videoLoading}
-          error={videoError}
-          hasSelection={selectedLogId !== null}
-          selectedLogId={selectedLogId}
-          shouldAutoplay={shouldAutoplay}
-          onAutoplayHandled={handleAutoplayHandled}
-          onPlayingChange={handlePlayingChange}
-          playbackAction={playbackAction}
-          onPlaybackActionHandled={handlePlaybackActionHandled}
-          consumePlayFromVideoTable={consumePlayFromVideoTable}
-          clearPlayFromVideoTable={clearPlayFromVideoTable}
-        />
+        <div className={cx('right-panel')}>
+          <VideoPreview
+            key={playerScopeId}
+            videoSrc={videoSrc}
+            loading={listLoading || videoLoading}
+            error={videoError}
+            hasSelection={selectedLogId !== null}
+            selectedLogId={selectedLogId}
+            shouldAutoplay={shouldAutoplay}
+            onAutoplayHandled={handleAutoplayHandled}
+            onPlayingChange={handlePlayingChange}
+            playbackAction={playbackAction}
+            onPlaybackActionHandled={handlePlaybackActionHandled}
+            consumePlayFromVideoTable={consumePlayFromVideoTable}
+            clearPlayFromVideoTable={clearPlayFromVideoTable}
+          />
+        </div>
       </div>
     </div>
   );
