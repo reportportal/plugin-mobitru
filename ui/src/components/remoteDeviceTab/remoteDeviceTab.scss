@@ -22,19 +22,73 @@
 
 .columns {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 0;
   align-items: stretch;
+}
+
+.columns--dragging {
+  cursor: col-resize;
+  user-select: none;
+}
+
+.left-panel {
+  flex: 0 1 41%;
+  min-width: 300px;
+  overflow: hidden;
+}
+
+.right-panel {
+  flex: 1;
+  min-width: 300px;
+  overflow: hidden;
+}
+
+.columns-splitter {
+  flex: 0 0 8px;
+  position: relative;
+  cursor: col-resize;
+  touch-action: none;
+  background: linear-gradient(
+    to right,
+    transparent calc(50% - 0.5px),
+    var(--rp-ui-base-e-91) calc(50% - 0.5px),
+    var(--rp-ui-base-e-91) calc(50% + 0.5px),
+    transparent calc(50% + 0.5px)
+  );
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 21px;
+    left: 50%;
+    width: 1px;
+    height: 24px;
+    background: var(--rp-ui-base-e-300);
+    transform: translateX(-50%);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 25px;
+    left: 50%;
+    width: 2px;
+    height: 16px;
+    border-radius: 1px;
+    box-shadow:
+      -4px 0 0 var(--rp-ui-base-e-300),
+      4px 0 0 var(--rp-ui-base-e-300);
+    transform: translateX(-50%);
+  }
 }
 
 .videos-panel {
   display: flex;
   flex-direction: column;
-  flex: 0 0 41%;
-  min-width: 280px;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
   padding: 0 24px;
   box-sizing: border-box;
-  border-right: 1px solid var(--rp-ui-base-e-91);
 }
 
 .videos-toolbar {
@@ -155,8 +209,9 @@
 
 .preview-panel {
   display: flex;
-  flex: 1;
   flex-direction: column;
+  width: 100%;
+  height: 100%;
   min-width: 0;
 }
 
