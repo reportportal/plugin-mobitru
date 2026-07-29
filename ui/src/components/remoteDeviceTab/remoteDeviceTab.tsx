@@ -178,6 +178,11 @@ const RemoteDeviceTabInner = ({
     setIsDragging(false);
   }, []);
 
+  const containerWidth = columnsRef.current?.offsetWidth ?? 0;
+  const leftPercent =
+    containerWidth > 0 && leftWidthPx !== null
+      ? Math.round((leftWidthPx / containerWidth) * 100)
+      : 41;
   const playerScopeId = `${logItem.id}-${activeRetry.id}`;
 
   return (
@@ -203,6 +208,10 @@ const RemoteDeviceTabInner = ({
           className={cx('columns-splitter')}
           role="separator"
           aria-label="Resize columns"
+          aria-orientation="vertical"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={leftPercent}
           onPointerDown={handleSplitterPointerDown}
           onPointerMove={handleSplitterPointerMove}
           onPointerUp={handleSplitterPointerUp}
