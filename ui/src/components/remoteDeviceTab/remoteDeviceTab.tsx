@@ -48,11 +48,13 @@ type WindowWithLeftWidth = Window & {
 };
 
 const getRememberedLeftWidthPx = (): number | null => {
+  if (typeof window === 'undefined') return null;
   const value = (window as WindowWithLeftWidth)[LEFT_WIDTH_STORAGE_KEY];
   return typeof value === 'number' ? value : null;
 };
 
 const setRememberedLeftWidthPx = (value: number | null) => {
+  if (typeof window === 'undefined') return;
   (window as WindowWithLeftWidth)[LEFT_WIDTH_STORAGE_KEY] = value;
 };
 
