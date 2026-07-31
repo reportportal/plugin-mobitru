@@ -41,6 +41,20 @@ interface LogTabProps {
 
 const MIN_PANEL_WIDTH = 300;
 const SPLITTER_WIDTH = 8;
+const LEFT_WIDTH_STORAGE_KEY = '__rpMobitruRemoteDeviceLeftWidthPx';
+
+type WindowWithLeftWidth = Window & {
+  [LEFT_WIDTH_STORAGE_KEY]?: number | null;
+};
+
+const getRememberedLeftWidthPx = (): number | null => {
+  const value = (window as WindowWithLeftWidth)[LEFT_WIDTH_STORAGE_KEY];
+  return typeof value === 'number' ? value : null;
+};
+
+const setRememberedLeftWidthPx = (value: number | null) => {
+  (window as WindowWithLeftWidth)[LEFT_WIDTH_STORAGE_KEY] = value;
+};
 
 const RemoteDeviceTabInner = ({
   logItem,
@@ -57,10 +71,14 @@ const RemoteDeviceTabInner = ({
 
   const columnsRef = useRef<HTMLDivElement>(null);
   const leftPanelRef = useRef<HTMLDivElement>(null);
-  const [leftWidthPx, setLeftWidthPx] = useState<number | null>(null);
+  const [leftWidthPx, setLeftWidthPx] = useState<number | null>(getRememberedLeftWidthPx);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartX = useRef(0);
   const dragStartWidth = useRef(0);
+
+  useEffect(() => {
+    setRememberedLeftWidthPx(leftWidthPx);
+  }, [leftWidthPx]);
 
   const { videos, listLoading, listError, videoSrc, videoLoading, videoError } = useMobitruVideos({
     activeRetryPath: activeRetry.path,
