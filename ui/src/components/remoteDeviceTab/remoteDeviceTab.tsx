@@ -39,7 +39,8 @@ interface LogTabProps {
   onJumpToLog?: (logId: number, itemId: number) => void;
 }
 
-const MIN_PANEL_WIDTH = 400;
+const MIN_LEFT_PANEL_WIDTH = 300;
+const MIN_RIGHT_PANEL_WIDTH = 400;
 const SPLITTER_WIDTH = 8;
 const LEFT_WIDTH_STORAGE_KEY = '__rpMobitruRemoteDeviceLeftWidthPx';
 
@@ -161,8 +162,8 @@ const RemoteDeviceTabInner = ({
     const observer = new ResizeObserver(() => {
       setLeftWidthPx((prev) => {
         if (prev === null) return null;
-        const maxLeft = container.offsetWidth - SPLITTER_WIDTH - MIN_PANEL_WIDTH;
-        return Math.max(MIN_PANEL_WIDTH, Math.min(maxLeft, prev));
+        const maxLeft = container.offsetWidth - SPLITTER_WIDTH - MIN_RIGHT_PANEL_WIDTH;
+        return Math.max(MIN_LEFT_PANEL_WIDTH, Math.min(maxLeft, prev));
       });
     });
     observer.observe(container);
@@ -184,9 +185,12 @@ const RemoteDeviceTabInner = ({
     if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
     const container = columnsRef.current;
     if (!container) return;
-    const maxLeft = container.offsetWidth - SPLITTER_WIDTH - MIN_PANEL_WIDTH;
+    const maxLeft = container.offsetWidth - SPLITTER_WIDTH - MIN_RIGHT_PANEL_WIDTH;
     const delta = e.clientX - dragStartX.current;
-    const newWidth = Math.max(MIN_PANEL_WIDTH, Math.min(maxLeft, dragStartWidth.current + delta));
+    const newWidth = Math.max(
+      MIN_LEFT_PANEL_WIDTH,
+      Math.min(maxLeft, dragStartWidth.current + delta)
+    );
     setLeftWidthPx(newWidth);
   }, []);
 
