@@ -39,7 +39,7 @@ interface LogTabProps {
   onJumpToLog?: (logId: number, itemId: number) => void;
 }
 
-const MIN_PANEL_WIDTH = 300;
+const MIN_PANEL_WIDTH = 400;
 const SPLITTER_WIDTH = 8;
 const LEFT_WIDTH_STORAGE_KEY = '__rpMobitruRemoteDeviceLeftWidthPx';
 
