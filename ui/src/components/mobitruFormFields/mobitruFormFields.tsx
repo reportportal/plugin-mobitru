@@ -108,6 +108,11 @@ export const MobitruFormFields = ({
           <FieldText disabled={disabled} defaultWidth={false} />
         </FieldErrorHint>
       </FieldElement>
+      <FieldElement name="workspaceId" label={formatMessage(messages.workspaceId)}>
+        <FieldErrorHint provideHint={false}>
+          <FieldText disabled={disabled} defaultWidth={false} />
+        </FieldErrorHint>
+      </FieldElement>
     </div>
   );
 };

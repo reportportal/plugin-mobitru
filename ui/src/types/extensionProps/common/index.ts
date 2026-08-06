@@ -47,6 +47,7 @@ export interface IntegrationFormFieldsInterface {
 export interface MobitruIntegrationParameters {
   apiKey?: string;
   billingUnit?: string;
+  workspaceId?: string;
 }
 
 export interface IntegrationSettingsInterface {

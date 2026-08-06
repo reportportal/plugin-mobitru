@@ -40,6 +40,7 @@ export const MobitruSettings = ({
   const authFieldsConfig = [
     { value: params.apiKey ? API_KEY_MASK : '', message: formatMessage(messages.apiKey) },
     { value: params.billingUnit ?? '', message: formatMessage(messages.billingUnit) },
+    { value: params.workspaceId ?? '', message: formatMessage(messages.workspaceId) },
   ];
 
   const editAuthClickHandler = (testConnection: () => void) => {

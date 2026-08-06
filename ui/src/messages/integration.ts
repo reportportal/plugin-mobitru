@@ -9,4 +9,8 @@ export const messages = defineMessages({
     id: 'Mobitru.Integration.billingUnit',
     defaultMessage: 'Mobitru Billing unit (slug)',
   },
+  workspaceId: {
+    id: 'Mobitru.Integration.workspaceId',
+    defaultMessage: 'Workspace ID',
+  },
 });
