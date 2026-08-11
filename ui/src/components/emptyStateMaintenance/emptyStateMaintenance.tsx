@@ -20,12 +20,13 @@ import parse from 'html-react-parser';
 import RpLogo from 'icons/logo-white.svg';
 import SatelliteIllustration from 'icons/satellite.svg';
 import { messages } from 'messages/cloudDevices';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useIntl } from 'react-intl';
 
 import { PageBreadcrumb, PageBreadcrumbs } from '../pageBreadcrumbs';
 import { SocialLinks } from '../socialLinks';
 import styles from './emptyStateMaintenance.scss';
+const MAXIMAL_HEIGHT = 720;
 
 const cx = classNames.bind(styles);
 
@@ -41,6 +42,30 @@ const EmptyStateMaintenance = ({
   breadcrumbTree = [],
 }: EmptyStateMaintenanceProps): React.ReactElement => {
   const { formatMessage } = useIntl();
+
+  useEffect(() => {
+    const layoutContentElement = document.querySelector<HTMLElement>('[class*="layout__content"]');
+
+    if (!layoutContentElement) {
+      return () => {};
+    }
+
+    const handleResize = () => {
+      if (window.innerHeight <= MAXIMAL_HEIGHT) {
+        layoutContentElement.style.setProperty('overflow-y', 'auto', 'important');
+      } else {
+        layoutContentElement.style.removeProperty('overflow-y');
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      layoutContentElement.style.removeProperty('overflow-y');
+    };
+  }, []);
 
   const handleRefresh = useCallback(() => {
     onRefreshClick();
