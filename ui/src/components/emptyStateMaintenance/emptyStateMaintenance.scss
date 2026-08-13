@@ -1,10 +1,21 @@
 .maintenance-page {
   display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+}
+
+.maintenance-canvas {
+  display: flex;
   justify-content: center;
   align-items: flex-start;
+  flex: 1 0 auto;
   width: 100%;
-  height: 100vh;
-  min-height: 906px;
+  min-height: 720px;
+  padding-bottom: 48px;
   position: relative;
   z-index: 0;
   overflow: hidden;
