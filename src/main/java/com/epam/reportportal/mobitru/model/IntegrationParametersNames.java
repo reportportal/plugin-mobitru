@@ -24,7 +24,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.integration.
 public enum IntegrationParametersNames {
 
   API_KEY("apiKey"),
-  BILLING_UNIT("billingUnit");
+  BILLING_UNIT("billingUnit"),
+  WORKSPACE_ID("workspaceId");
 
   private final String name;
 

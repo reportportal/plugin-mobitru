@@ -80,6 +80,40 @@ class MobitruRecordingClientTest {
   }
 
   @Test
+  void downloadsRecordingUsingWorkspaceEndpointWhenWorkspaceIdIsConfigured() throws Exception {
+    byte[] body = "video".getBytes(StandardCharsets.UTF_8);
+    AtomicReference<String> requestPath = new AtomicReference<>();
+    AtomicReference<String> authorizationHeader = new AtomicReference<>();
+    HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+    server.createContext(
+        "/billing/unit/demo-slug/workspace/demo-workspace/automation/api/recording/rec-1",
+        exchange -> {
+          requestPath.set(exchange.getRequestURI().getPath());
+          authorizationHeader.set(exchange.getRequestHeaders().getFirst("Authorization"));
+          exchange.getResponseHeaders().add("Content-Type", "video/mp4");
+          exchange.sendResponseHeaders(200, body.length);
+          exchange.getResponseBody().write(body);
+          exchange.close();
+        });
+    server.start();
+
+    try {
+      RecordingAttachmentData result = client(server).downloadRecording(
+          integration("demo-workspace"), "rec-1", MOBILE_RECORDING_ID_KEY);
+
+      assertEquals(
+          "/billing/unit/demo-slug/workspace/demo-workspace/automation/api/recording/rec-1",
+          requestPath.get());
+      assertEquals("Bearer token-123", authorizationHeader.get());
+      assertEquals("rec-1.mp4", result.fileName());
+      assertEquals("video/mp4", result.contentType());
+      assertArrayEquals(body, result.content());
+    } finally {
+      server.stop(0);
+    }
+  }
+
+  @Test
   void fallsBackToRecordingIdWhenResponseHasNoFilename() throws Exception {
     byte[] body = "video".getBytes(StandardCharsets.UTF_8);
     HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
@@ -208,10 +242,17 @@ class MobitruRecordingClientTest {
   }
 
   private Integration integration() {
+    return integration(null);
+  }
+
+  private Integration integration(String workspaceId) {
     Integration integration = new Integration();
     Map<String, Object> params = new HashMap<>();
     params.put("apiKey", ENCRYPTOR.encrypt("token-123"));
     params.put("billingUnit", "demo-slug");
+    if (workspaceId != null) {
+      params.put("workspaceId", workspaceId);
+    }
     integration.setParams(new IntegrationParams(params));
     return integration;
   }

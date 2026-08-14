@@ -18,6 +18,7 @@ package com.epam.reportportal.mobitru.client;
 
 import static com.epam.reportportal.mobitru.model.Constants.BROWSERHUB_BASE_URL;
 import static com.epam.reportportal.mobitru.model.Constants.GET_MOBILE_RECORDING;
+import static com.epam.reportportal.mobitru.model.Constants.GET_MOBILE_RECORDING_WITH_WORKSPACE;
 import static com.epam.reportportal.mobitru.model.Constants.GET_PLAYWRIGHT_RECORDING;
 import static com.epam.reportportal.mobitru.model.Constants.GET_SELENIUM_RECORDING;
 import static com.epam.reportportal.mobitru.model.Constants.MOBITRU_BASE_URL;
@@ -149,6 +150,10 @@ public class MobitruRecordingClient {
     }
     if (SELENIUM_RECORDING_ID_KEY.equals(attachmentAttributeKey)) {
       return String.format(GET_SELENIUM_RECORDING, attachmentExternalId);
+    }
+    if (properties.hasWorkspaceId()) {
+      return String.format(GET_MOBILE_RECORDING_WITH_WORKSPACE, properties.getBillingUnit(),
+          properties.getWorkspaceId(), attachmentExternalId);
     }
     return String.format(GET_MOBILE_RECORDING, properties.getBillingUnit(), attachmentExternalId);
   }
