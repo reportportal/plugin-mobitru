@@ -18,7 +18,6 @@ package com.epam.reportportal.mobitru.client;
 
 import static com.epam.reportportal.mobitru.model.Constants.BROWSERHUB_BASE_URL;
 import static com.epam.reportportal.mobitru.model.Constants.GET_MOBILE_RECORDING;
-import static com.epam.reportportal.mobitru.model.Constants.GET_MOBILE_RECORDING_WITH_WORKSPACE;
 import static com.epam.reportportal.mobitru.model.Constants.GET_PLAYWRIGHT_RECORDING;
 import static com.epam.reportportal.mobitru.model.Constants.GET_SELENIUM_RECORDING;
 import static com.epam.reportportal.mobitru.model.Constants.MOBITRU_BASE_URL;
@@ -30,6 +29,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.epam.reportportal.mobitru.model.IntegrationProperties;
 import com.epam.reportportal.mobitru.model.RecordingAttachmentData;
+import com.epam.reportportal.mobitru.utils.MobitruUrlBuilder;
 import com.epam.reportportal.mobitru.utils.ValidationUtils;
 import java.time.Duration;
 import lombok.extern.slf4j.Slf4j;
@@ -95,9 +95,9 @@ public class MobitruRecordingClient {
       HttpEntity<Void> request = new HttpEntity<>(
           buildAuthHeaders(properties, attachmentAttributeKey));
 
-      ResponseEntity<byte[]> response =
-          retryExecutor.execute("download recording from '" + recordingUrl + "'",
-              () -> restTemplate.exchange(recordingUrl, HttpMethod.GET, request, byte[].class));
+      ResponseEntity<byte[]> response = retryExecutor.execute(
+          "download recording from '" + recordingUrl + "'",
+          () -> restTemplate.exchange(recordingUrl, HttpMethod.GET, request, byte[].class));
 
       byte[] body = response.getBody();
 
@@ -106,9 +106,9 @@ public class MobitruRecordingClient {
             "Failed to download recording.");
       }
 
-      String contentType = response.getHeaders().getContentType() == null
-          ? MediaType.APPLICATION_OCTET_STREAM_VALUE
-          : response.getHeaders().getContentType().toString();
+      String contentType =
+          response.getHeaders().getContentType() == null ? MediaType.APPLICATION_OCTET_STREAM_VALUE
+              : response.getHeaders().getContentType().toString();
 
       String fileName = resolveFileName(response, attachmentExternalId, contentType);
 
@@ -122,40 +122,29 @@ public class MobitruRecordingClient {
 
   private String resolveRecordingUrl(IntegrationProperties properties, String attachmentExternalId,
       String attachmentAttributeKey) {
-    return resolveBaseUrl(attachmentAttributeKey)
-        + resolveRecordingPath(properties, attachmentExternalId, attachmentAttributeKey);
-  }
-
-  private String resolveBaseUrl(String attachmentAttributeKey) {
     if (isBrowserHubRecording(attachmentAttributeKey)) {
-      return browserRecordingsBaseUrl;
+      return browserRecordingsBaseUrl + resolveBrowserHubPath(attachmentExternalId,
+          attachmentAttributeKey);
     }
-    return mobileRecordingsBaseUrl;
+    return MobitruUrlBuilder.buildAutomationApiUrl(mobileRecordingsBaseUrl, properties,
+        GET_MOBILE_RECORDING, attachmentExternalId);
   }
 
   private HttpHeaders buildAuthHeaders(IntegrationProperties properties,
       String attachmentAttributeKey) {
     HttpHeaders headers = new HttpHeaders();
-    String authorization = isBrowserHubRecording(attachmentAttributeKey)
-        ? restClient.basicAuthHeader(properties)
-        : restClient.bearerAuthHeader(properties);
+    String authorization =
+        isBrowserHubRecording(attachmentAttributeKey) ? restClient.basicAuthHeader(properties)
+            : restClient.bearerAuthHeader(properties);
     headers.set(HttpHeaders.AUTHORIZATION, authorization);
     return headers;
   }
 
-  private String resolveRecordingPath(IntegrationProperties properties, String attachmentExternalId,
-      String attachmentAttributeKey) {
+  private String resolveBrowserHubPath(String attachmentExternalId, String attachmentAttributeKey) {
     if (PLAYWRIGHT_RECORDING_ID_KEY.equals(attachmentAttributeKey)) {
       return String.format(GET_PLAYWRIGHT_RECORDING, attachmentExternalId);
     }
-    if (SELENIUM_RECORDING_ID_KEY.equals(attachmentAttributeKey)) {
-      return String.format(GET_SELENIUM_RECORDING, attachmentExternalId);
-    }
-    if (properties.hasWorkspaceId()) {
-      return String.format(GET_MOBILE_RECORDING_WITH_WORKSPACE, properties.getBillingUnit(),
-          properties.getWorkspaceId(), attachmentExternalId);
-    }
-    return String.format(GET_MOBILE_RECORDING, properties.getBillingUnit(), attachmentExternalId);
+    return String.format(GET_SELENIUM_RECORDING, attachmentExternalId);
   }
 
   private boolean isBrowserHubRecording(String attachmentAttributeKey) {

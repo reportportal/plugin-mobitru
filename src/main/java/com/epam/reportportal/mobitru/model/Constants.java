@@ -28,11 +28,11 @@ public class Constants {
   public static final String PLAYWRIGHT_RECORDING_ID_KEY = "mobitru_playwright_recording_id";
   public static final String SELENIUM_RECORDING_ID_KEY = "mobitru_selenium_recording_id";
 
-  // endpoints
-  public static final String TEST_CONNECTION = "/billing/unit/%s/automation/api/device/ios";
-  public static final String GET_DEVICES = "/billing/unit/%s/automation/api/device/%s";
-  public static final String GET_MOBILE_RECORDING = "/billing/unit/%s/automation/api/recording/%s";
-  public static final String GET_MOBILE_RECORDING_WITH_WORKSPACE = "/billing/unit/%s/workspace/%s/automation/api/recording/%s";
+  // endpoints - relative to the billing unit (and, optionally, workspace) segment built by
+  // com.epam.reportportal.mobitru.utils.MobitruUrlBuilder
+  public static final String TEST_CONNECTION = "/automation/api/device/ios";
+  public static final String GET_DEVICES = "/automation/api/device/%s";
+  public static final String GET_MOBILE_RECORDING = "/automation/api/recording/%s";
   public static final String GET_PLAYWRIGHT_RECORDING = "/recordings/%s";
   public static final String GET_SELENIUM_RECORDING = "/recordings/%s";
 

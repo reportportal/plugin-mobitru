@@ -30,6 +30,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.mobitru.client.RestClientBuilder;
 import com.epam.reportportal.mobitru.model.IntegrationProperties;
+import com.epam.reportportal.mobitru.utils.MobitruUrlBuilder;
 import com.epam.reportportal.mobitru.utils.ValidationUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
@@ -61,7 +62,8 @@ public class TestConnectionCommand extends AbstractExtensionCommand<Boolean> {
     RestTemplate restTemplate = restClient.getRestTemplate();
 
     try {
-      String assetsUrl = MOBITRU_BASE_URL + String.format(TEST_CONNECTION, sp.getBillingUnit());
+      String assetsUrl = MobitruUrlBuilder.buildAutomationApiUrl(MOBITRU_BASE_URL, sp,
+          TEST_CONNECTION);
       HttpHeaders headers = new HttpHeaders();
       headers.set(HttpHeaders.AUTHORIZATION, restClient.bearerAuthHeader(sp));
       ResponseEntity<String> forObject = restTemplate.exchange(assetsUrl, HttpMethod.GET,

@@ -34,6 +34,7 @@ import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.mobitru.client.RestClientBuilder;
 import com.epam.reportportal.mobitru.model.DeviceInfo;
 import com.epam.reportportal.mobitru.model.IntegrationProperties;
+import com.epam.reportportal.mobitru.utils.MobitruUrlBuilder;
 import com.epam.reportportal.mobitru.utils.ValidationUtils;
 import java.util.Collections;
 import java.util.List;
@@ -75,19 +76,15 @@ public class GetDevicesCommand extends AbstractExtensionCommand<List<DeviceInfo>
     RestTemplate restTemplate = restClient.getRestTemplate();
 
     try {
-      String devicesUrl = MOBITRU_BASE_URL + String.format(GET_DEVICES, sp.getBillingUnit(),
+      String devicesUrl = MobitruUrlBuilder.buildAutomationApiUrl(MOBITRU_BASE_URL, sp, GET_DEVICES,
           platform);
 
       HttpHeaders headers = new HttpHeaders();
       headers.set(HttpHeaders.AUTHORIZATION, restClient.bearerAuthHeader(sp));
 
-      ResponseEntity<List<DeviceInfo>> response = restTemplate.exchange(
-          devicesUrl,
-          HttpMethod.GET,
-          new HttpEntity<>(headers),
-          new ParameterizedTypeReference<>() {
-          }
-      );
+      ResponseEntity<List<DeviceInfo>> response = restTemplate.exchange(devicesUrl, HttpMethod.GET,
+          new HttpEntity<>(headers), new ParameterizedTypeReference<>() {
+          });
 
       if (response.getStatusCode().is2xxSuccessful()) {
         List<DeviceInfo> body = response.getBody();
@@ -109,12 +106,12 @@ public class GetDevicesCommand extends AbstractExtensionCommand<List<DeviceInfo>
   }
 
   private String resolvePlatform(Map<String, Object> params) {
-    expect(params, Predicates.notNull()).verify(
-        ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, PLATFORM + " parameter should be provided");
+    expect(params, Predicates.notNull()).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+        PLATFORM + " parameter should be provided");
 
     Object raw = params.get(PLATFORM);
-    expect(raw, Predicates.notNull()).verify(
-        ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, PLATFORM + " parameter should be provided");
+    expect(raw, Predicates.notNull()).verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+        PLATFORM + " parameter should be provided");
     String platform = raw.toString().toLowerCase(Locale.ROOT);
 
     if (!SUPPORTED_PLATFORMS.contains(platform)) {
