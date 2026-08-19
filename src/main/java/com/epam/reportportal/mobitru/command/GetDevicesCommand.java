@@ -34,6 +34,7 @@ import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.mobitru.client.RestClientBuilder;
 import com.epam.reportportal.mobitru.model.DeviceInfo;
 import com.epam.reportportal.mobitru.model.IntegrationProperties;
+import com.epam.reportportal.mobitru.utils.MobitruHttpErrors;
 import com.epam.reportportal.mobitru.utils.MobitruUrlBuilder;
 import com.epam.reportportal.mobitru.utils.ValidationUtils;
 import java.util.Collections;
@@ -94,6 +95,9 @@ public class GetDevicesCommand extends AbstractExtensionCommand<List<DeviceInfo>
       throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
           "Failed to retrieve devices.");
     } catch (Exception e) {
+      if (MobitruHttpErrors.isNoAvailableDevices(e)) {
+        return Collections.emptyList();
+      }
       log.error("Failed to retrieve devices for platform '{}'", platform, e);
       throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
           "Failed to retrieve devices.");

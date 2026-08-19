@@ -30,6 +30,7 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.mobitru.client.RestClientBuilder;
 import com.epam.reportportal.mobitru.model.IntegrationProperties;
+import com.epam.reportportal.mobitru.utils.MobitruHttpErrors;
 import com.epam.reportportal.mobitru.utils.MobitruUrlBuilder;
 import com.epam.reportportal.mobitru.utils.ValidationUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -72,12 +73,15 @@ public class TestConnectionCommand extends AbstractExtensionCommand<Boolean> {
         return true;
       } else {
         throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-            "Connection refused.");
+            "Unable to connect to Mobitru.");
       }
     } catch (Exception e) {
+      if (MobitruHttpErrors.isNoAvailableDevices(e)) {
+        return true;
+      }
       log.error("Test connection failed", e);
       throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-          "Connection refused.");
+          "Unable to connect to Mobitru.");
     }
   }
 
