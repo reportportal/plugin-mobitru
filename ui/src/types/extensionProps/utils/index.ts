@@ -26,11 +26,13 @@ export interface UtilsInterface extends Record<string, unknown> {
   getDefectFormFields: (fields: any, checkedFieldsIds: any, integrationData: any) => string;
   fetch: FetchFn;
   canUpdateSettings?: (roles: UserRoles) => boolean;
+  resolveApiPath: (path: string) => string;
   URLS: {
     pluginsCommandsCommon: (pluginName: string, command: string) => string;
     logItems: (projectKey: string, itemId: number, level?: string) => string;
     logsUnderPath: (projectKey: string, path: string, excludedRetryParentId?: number) => string;
     getFileById: (projectKey: string, dataId: number, loadThumbnail?: boolean) => string;
     pluginPublicFile: (pluginName: string, fileKey: string) => string;
+    createStreamLink: (projectKey: string, dataId: number) => string;
   };
 }
