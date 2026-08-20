@@ -15,7 +15,7 @@
  */
 
 import { useExtensionProps } from 'hooks/useExtensionProps';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 const MOBITRU_LOG_LEVEL = 'mobitru';
@@ -39,6 +39,10 @@ interface LogItem {
 interface LogItemsResponse {
   content: LogItem[];
   page?: { totalPages?: number };
+}
+
+interface StreamLinkResponse {
+  url: string;
 }
 
 const mapVideoLogs = (content: LogItem[]): MobitruVideoLog[] =>
@@ -68,25 +72,16 @@ export const useMobitruVideos = ({
   const [videoError, setVideoError] = useState('');
   const [loadedVideo, setLoadedVideo] = useState<{ logId: number; src: string } | null>(null);
   const [displayedVideo, setDisplayedVideo] = useState<{ logId: number; src: string } | null>(null);
-  const videoCacheRef = useRef<Map<string, string>>(new Map());
   const {
-    utils: { fetch, URLS },
+    utils: { fetch, URLS, resolveApiPath },
     selectors: { projectInfoSelector },
   } = useExtensionProps();
   const { projectKey } = useSelector(projectInfoSelector);
-
-  const revokeCachedUrls = useCallback(() => {
-    videoCacheRef.current.forEach((objectUrl) => {
-      URL.revokeObjectURL(objectUrl);
-    });
-    videoCacheRef.current.clear();
-  }, []);
 
   useEffect(() => {
     const abortController = new AbortController();
 
     const fetchVideoList = async () => {
-      revokeCachedUrls();
       setListLoading(true);
       setListError('');
       setVideos([]);
@@ -153,7 +148,7 @@ export const useMobitruVideos = ({
     return () => {
       abortController.abort();
     };
-  }, [URLS, activeRetryPath, excludedRetryParentId, fetch, projectKey, revokeCachedUrls]);
+  }, [URLS, activeRetryPath, excludedRetryParentId, fetch, projectKey]);
 
   useEffect(() => {
     if (!selectedLogId) {
@@ -167,28 +162,20 @@ export const useMobitruVideos = ({
 
     if (!selectedVideo?.binaryContent?.id) {
       setLoadedVideo(null);
-      return undefined;
-    }
-
-    const cacheKey = selectedVideo.binaryContent.id;
-    const cachedObjectUrl = videoCacheRef.current.get(cacheKey);
-
-    if (cachedObjectUrl) {
-      setLoadedVideo({ logId: selectedLogId, src: cachedObjectUrl });
       setVideoError('');
       return undefined;
     }
 
     const abortController = new AbortController();
 
-    const fetchVideoBlob = async () => {
+    const fetchVideoStreamLink = async () => {
       setVideoError('');
 
       try {
-        const fileData = await fetch<Blob>(
-          URLS.getFileById(projectKey, Number(selectedVideo.binaryContent.id)),
+        const response = await fetch<StreamLinkResponse>(
+          URLS.createStreamLink(projectKey, Number(selectedVideo.binaryContent.id)),
           {
-            responseType: 'blob',
+            method: 'post',
             signal: abortController.signal,
           }
         );
@@ -197,9 +184,13 @@ export const useMobitruVideos = ({
           return;
         }
 
-        const videoObjectUrl = URL.createObjectURL(fileData);
-        videoCacheRef.current.set(cacheKey, videoObjectUrl);
-        setLoadedVideo({ logId: selectedLogId, src: videoObjectUrl });
+        if (!response?.url) {
+          setLoadedVideo(null);
+          setVideoError('No video URL returned');
+          return;
+        }
+
+        setLoadedVideo({ logId: selectedLogId, src: resolveApiPath(response.url) });
       } catch (e: unknown) {
         if (abortController.signal.aborted) {
           return;
@@ -210,12 +201,12 @@ export const useMobitruVideos = ({
       }
     };
 
-    fetchVideoBlob();
+    fetchVideoStreamLink();
 
     return () => {
       abortController.abort();
     };
-  }, [URLS, fetch, projectKey, selectedLogId, videos]);
+  }, [URLS, fetch, projectKey, resolveApiPath, selectedLogId, videos]);
 
   useEffect(() => {
     if (!selectedLogId) {
@@ -228,8 +219,6 @@ export const useMobitruVideos = ({
     }
   }, [loadedVideo, selectedLogId]);
 
-  useEffect(() => () => revokeCachedUrls(), [revokeCachedUrls]);
-
   const isSelectedVideoReady = loadedVideo !== null && loadedVideo.logId === selectedLogId;
 
   return {
@@ -237,7 +226,7 @@ export const useMobitruVideos = ({
     listLoading,
     listError,
     videoSrc: displayedVideo?.src ?? '',
-    videoLoading: Boolean(selectedLogId) && !isSelectedVideoReady,
+    videoLoading: Boolean(selectedLogId) && !isSelectedVideoReady && !videoError,
     videoError,
   };
 };
