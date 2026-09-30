@@ -19,6 +19,7 @@ import classNames from 'classnames/bind';
 import parse from 'html-react-parser';
 import ZeroFormIcon from 'icons/zero-form.svg';
 import { messages } from 'messages/cloudDevices';
+import { reusedMessages } from 'messages/reused';
 import { useIntl } from 'react-intl';
 
 import { PageBreadcrumb, PageBreadcrumbs } from '../pageBreadcrumbs';
@@ -76,7 +77,7 @@ const EmptyStateNoIntegration = ({
             onClick={onDocsClick}
             className={cx('docs')}
           >
-            {formatMessage(messages.noIntegrationButtonDocs)}
+            {formatMessage(reusedMessages.documentation)}
           </Button>
         </div>
       </div>

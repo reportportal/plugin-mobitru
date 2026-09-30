@@ -2,10 +2,6 @@ import { defineMessages } from 'react-intl';
 
 export const messages = defineMessages({
   pageTitle: { id: 'Mobitru.CloudDevices.pageTitle', defaultMessage: 'Cloud Devices' },
-  allOrganizations: {
-    id: 'Mobitru.CloudDevices.allOrganizations',
-    defaultMessage: 'All Organizations',
-  },
   exploreDevices: { id: 'Mobitru.CloudDevices.exploreDevices', defaultMessage: 'Explore Devices' },
   tabIos: { id: 'Mobitru.CloudDevices.tabIos', defaultMessage: 'iOS' },
   tabAndroid: { id: 'Mobitru.CloudDevices.tabAndroid', defaultMessage: 'Android' },
@@ -44,10 +40,6 @@ export const messages = defineMessages({
     id: 'Mobitru.CloudDevices.noIntegrationButtonSettings',
     defaultMessage: 'Open Settings',
   },
-  noIntegrationButtonDocs: {
-    id: 'Mobitru.CloudDevices.noIntegrationButtonDocs',
-    defaultMessage: 'Documentation',
-  },
 
   maintenanceTitle: {
     id: 'Mobitru.CloudDevices.maintenanceTitle',
@@ -61,10 +53,6 @@ export const messages = defineMessages({
   maintenanceDescription2: {
     id: 'Mobitru.CloudDevices.maintenanceDescription2',
     defaultMessage: 'We appreciate your patience.',
-  },
-  maintenanceButtonRefresh: {
-    id: 'Mobitru.CloudDevices.maintenanceButtonRefresh',
-    defaultMessage: 'Refresh page',
   },
   maintenanceSocialsLabel: {
     id: 'Mobitru.CloudDevices.maintenanceSocialsLabel',
