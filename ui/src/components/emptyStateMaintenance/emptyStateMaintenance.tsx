@@ -20,6 +20,7 @@ import parse from 'html-react-parser';
 import RpLogo from 'icons/logo-white.svg';
 import SatelliteIllustration from 'icons/satellite.svg';
 import { messages } from 'messages/cloudDevices';
+import { reusedMessages } from 'messages/reused';
 import { useCallback } from 'react';
 import { useIntl } from 'react-intl';
 
@@ -74,7 +75,7 @@ const EmptyStateMaintenance = ({
                 iconPlace="start"
                 className={cx('refresh-btn')}
               >
-                {formatMessage(messages.maintenanceButtonRefresh)}
+                {formatMessage(reusedMessages.refreshPage)}
               </Button>
             </div>
 

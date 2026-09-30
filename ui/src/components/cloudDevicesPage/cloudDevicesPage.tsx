@@ -22,6 +22,7 @@ import { CLOUD_DEVICE_PAGE_EVENTS, getPlatformTabClickEvent } from 'events/cloud
 import { ExtensionPropsContext, useExtensionProps } from 'hooks/useExtensionProps';
 import { useIntegrationCheck } from 'hooks/useIntegrationCheck';
 import { messages } from 'messages/cloudDevices';
+import { reusedMessages } from 'messages/reused';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useDispatch } from 'react-redux';
@@ -293,7 +294,7 @@ const CloudDevicesPageInner = () => {
     const ORGANIZATION_PROJECTS_PAGE = String(constants?.ORGANIZATION_PROJECTS_PAGE ?? '');
 
     const rootCrumb: LocationBreadcrumb = {
-      title: formatMessage(messages?.allOrganizations),
+      title: formatMessage(reusedMessages.allOrganizations),
       link: { type: ORGANIZATIONS_PAGE },
       children: [],
     };

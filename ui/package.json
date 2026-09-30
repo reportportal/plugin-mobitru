@@ -12,8 +12,12 @@
     "lint": "npm run type-check && npm run eslint && npm run stylelint",
     "format": "npm run eslint -- --fix",
     "format:scss": "npm run stylelint -- --fix",
+    "extract:translations": "formatjs extract \"src/**/*.{ts,tsx}\" --ignore \"**/*.d.ts\" --out-file src/locales/en.json --id-interpolation-pattern \"[sha512:contenthash:base64:6]\"",
+    "merge:translations": "node localization/mergeTranslations.js",
+    "manage:translations": "npm run extract:translations && npm run merge:translations",
     "prepare": "cd .. && husky install",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "postcommit": "git update-index --again"
   },
   "author": "",
   "license": "Apache-2.0",
@@ -32,6 +36,7 @@
     "redux-form": "8.3.10"
   },
   "devDependencies": {
+    "@formatjs/cli": "^6.16.11",
     "@eslint/compat": "^2.0.2",
     "@eslint/js": "^10.0.1",
     "@types/node": "^18.11.18",

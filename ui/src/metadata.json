@@ -1,5 +1,8 @@
 {
   "scope": "mobitru_plugin",
+  "localization": {
+    "messages": "locale-{lang}.json"
+  },
   "extensions": [
     {
       "name": "mobitruFormFields",
