@@ -26,6 +26,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepositor
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.Attachment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.AttachmentMetaInfo;
+import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.AttachmentStreamMetadata;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.BinaryData;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
@@ -186,6 +187,23 @@ class LoadExternalAttachmentCommandTest {
 
     @Override
     public BinaryData load(Long fileId, MembershipDetails membershipDetails) {
+      return null;
+    }
+
+    @Override
+    public BinaryData loadForStreaming(Long fileId, MembershipDetails membershipDetails) {
+      return null;
+    }
+
+    @Override
+    public AttachmentStreamMetadata getMetadataForStreaming(Long fileId,
+        MembershipDetails membershipDetails) {
+      return null;
+    }
+
+    @Override
+    public BinaryData loadForStreaming(AttachmentStreamMetadata metadata, long offset,
+        long length) {
       return null;
     }
 
