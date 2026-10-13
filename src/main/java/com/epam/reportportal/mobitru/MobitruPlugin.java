@@ -33,4 +33,5 @@ public class MobitruPlugin extends Plugin {
   public MobitruPlugin(PluginWrapper wrapper) {
     super(wrapper);
   }
+
 }
