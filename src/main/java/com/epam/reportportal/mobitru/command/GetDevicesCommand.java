@@ -44,11 +44,9 @@ import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -74,17 +72,17 @@ public class GetDevicesCommand extends AbstractExtensionCommand<List<DeviceInfo>
     String platform = resolvePlatform(pluginCommandRq.getArguments());
 
     IntegrationProperties sp = new IntegrationProperties(integration.getParams().getParams());
-    RestTemplate restTemplate = restClient.getRestTemplate();
+    RestClient http = restClient.getRestClient();
 
     try {
       String devicesUrl = MobitruUrlBuilder.buildAutomationApiUrl(MOBITRU_BASE_URL, sp, GET_DEVICES,
           platform);
 
-      HttpHeaders headers = new HttpHeaders();
-      headers.set(HttpHeaders.AUTHORIZATION, restClient.bearerAuthHeader(sp));
-
-      ResponseEntity<List<DeviceInfo>> response = restTemplate.exchange(devicesUrl, HttpMethod.GET,
-          new HttpEntity<>(headers), new ParameterizedTypeReference<>() {
+      ResponseEntity<List<DeviceInfo>> response = http.get()
+          .uri(devicesUrl)
+          .header(HttpHeaders.AUTHORIZATION, restClient.bearerAuthHeader(sp))
+          .retrieve()
+          .toEntity(new ParameterizedTypeReference<>() {
           });
 
       if (response.getStatusCode().is2xxSuccessful()) {

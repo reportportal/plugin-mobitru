@@ -34,11 +34,9 @@ import com.epam.reportportal.mobitru.utils.MobitruHttpErrors;
 import com.epam.reportportal.mobitru.utils.MobitruUrlBuilder;
 import com.epam.reportportal.mobitru.utils.ValidationUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -60,16 +58,17 @@ public class TestConnectionCommand extends AbstractExtensionCommand<Boolean> {
   public Boolean executeCommand(Integration integration, PluginCommandRQ pluginCommandRq) {
     ValidationUtils.validateIntegrationParams(integration.getParams());
     IntegrationProperties sp = new IntegrationProperties(integration.getParams().getParams());
-    RestTemplate restTemplate = restClient.getRestTemplate();
+    RestClient http = restClient.getRestClient();
 
     try {
       String assetsUrl = MobitruUrlBuilder.buildAutomationApiUrl(MOBITRU_BASE_URL, sp,
           TEST_CONNECTION);
-      HttpHeaders headers = new HttpHeaders();
-      headers.set(HttpHeaders.AUTHORIZATION, restClient.bearerAuthHeader(sp));
-      ResponseEntity<String> forObject = restTemplate.exchange(assetsUrl, HttpMethod.GET,
-          new HttpEntity<>(headers), String.class);
-      if (forObject.getStatusCode().is2xxSuccessful()) {
+      ResponseEntity<Void> response = http.get()
+          .uri(assetsUrl)
+          .header(HttpHeaders.AUTHORIZATION, restClient.bearerAuthHeader(sp))
+          .retrieve()
+          .toBodilessEntity();
+      if (response.getStatusCode().is2xxSuccessful()) {
         return true;
       } else {
         throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,

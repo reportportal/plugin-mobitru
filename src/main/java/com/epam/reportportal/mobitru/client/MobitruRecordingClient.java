@@ -33,12 +33,10 @@ import com.epam.reportportal.mobitru.utils.MobitruUrlBuilder;
 import com.epam.reportportal.mobitru.utils.ValidationUtils;
 import java.time.Duration;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 /**
  * Downloads recording binaries from Mobitru for a concrete integration configuration.
@@ -86,18 +84,21 @@ public class MobitruRecordingClient {
     IntegrationProperties properties = new IntegrationProperties(
         integration.getParams().getParams());
 
-    RestTemplate restTemplate = restClient.getRestTemplate();
+    RestClient http = restClient.getRestClient();
 
     try {
       String recordingUrl = resolveRecordingUrl(properties, attachmentExternalId,
           attachmentAttributeKey);
 
-      HttpEntity<Void> request = new HttpEntity<>(
-          buildAuthHeaders(properties, attachmentAttributeKey));
+      String authorization = resolveAuthorization(properties, attachmentAttributeKey);
 
       ResponseEntity<byte[]> response = retryExecutor.execute(
           "download recording from '" + recordingUrl + "'",
-          () -> restTemplate.exchange(recordingUrl, HttpMethod.GET, request, byte[].class));
+          () -> http.get()
+              .uri(recordingUrl)
+              .header(HttpHeaders.AUTHORIZATION, authorization)
+              .retrieve()
+              .toEntity(byte[].class));
 
       byte[] body = response.getBody();
 
@@ -130,14 +131,10 @@ public class MobitruRecordingClient {
         GET_MOBILE_RECORDING, attachmentExternalId);
   }
 
-  private HttpHeaders buildAuthHeaders(IntegrationProperties properties,
+  private String resolveAuthorization(IntegrationProperties properties,
       String attachmentAttributeKey) {
-    HttpHeaders headers = new HttpHeaders();
-    String authorization =
-        isBrowserHubRecording(attachmentAttributeKey) ? restClient.basicAuthHeader(properties)
-            : restClient.bearerAuthHeader(properties);
-    headers.set(HttpHeaders.AUTHORIZATION, authorization);
-    return headers;
+    return isBrowserHubRecording(attachmentAttributeKey) ? restClient.basicAuthHeader(properties)
+        : restClient.bearerAuthHeader(properties);
   }
 
   private String resolveBrowserHubPath(String attachmentExternalId, String attachmentAttributeKey) {

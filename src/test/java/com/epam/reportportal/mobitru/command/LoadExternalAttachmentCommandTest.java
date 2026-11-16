@@ -26,6 +26,7 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.LaunchRepositor
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.Attachment;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.AttachmentMetaInfo;
+import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.AttachmentStreamMetadata;
 import com.epam.reportportal.base.infrastructure.persistence.entity.attachment.BinaryData;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.MembershipDetails;
@@ -33,7 +34,6 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.launch.Launc
 import com.epam.reportportal.base.infrastructure.persistence.entity.log.Log;
 import com.epam.reportportal.mobitru.client.MobitruRecordingClient;
 import com.epam.reportportal.mobitru.model.RecordingAttachmentData;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Proxy;
 import java.time.Instant;
 import java.util.HashMap;
@@ -72,8 +72,7 @@ class LoadExternalAttachmentCommandTest {
         repositoryProxy(LogRepository.class, log),
         repositoryProxy(LaunchRepository.class, launch),
         attachmentService,
-        null, null, null, null,
-        new ObjectMapper());
+        null, null, null, null);
 
     command.executeCommand(new Integration(), new PluginCommandRQ(null, params()));
 
@@ -115,8 +114,7 @@ class LoadExternalAttachmentCommandTest {
         repositoryProxy(LogRepository.class, log),
         repositoryProxy(LaunchRepository.class, launch),
         attachmentService,
-        null, null, null, null,
-        new ObjectMapper());
+        null, null, null, null);
 
     command.executeCommand(new Integration(), new PluginCommandRQ(null, params()));
 
@@ -186,6 +184,22 @@ class LoadExternalAttachmentCommandTest {
 
     @Override
     public BinaryData load(Long fileId, MembershipDetails membershipDetails) {
+      return null;
+    }
+
+    @Override
+    public BinaryData loadForStreaming(Long fileId, MembershipDetails membershipDetails) {
+      return null;
+    }
+
+    @Override
+    public AttachmentStreamMetadata getMetadataForStreaming(Long fileId,
+        MembershipDetails membershipDetails) {
+      return null;
+    }
+
+    @Override
+    public BinaryData loadForStreaming(AttachmentStreamMetadata metadata, long start, long end) {
       return null;
     }
 
