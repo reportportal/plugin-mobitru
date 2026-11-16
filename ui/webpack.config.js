@@ -7,12 +7,14 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const pluginName = pjson.name;
 
 const config = {
+  devtool: false,
   entry: path.resolve(__dirname, './src'),
   output: {
     path: path.resolve(__dirname, 'build/public'),
     filename: '[name].app.[contenthash:8].js',
     publicPath: 'auto',
     clean: true,
+    scriptType: 'text/javascript',
   },
   module: {
     rules: [
@@ -44,7 +46,17 @@ const config = {
         ],
       },
       {
+        test: /\.png$/,
+        type: 'asset/inline',
+      },
+      {
         test: /\.svg$/,
+        issuer: /\.(sa|sc|c)ss$/,
+        type: 'asset/inline',
+      },
+      {
+        test: /\.svg$/,
+        issuer: { not: [/\.(sa|sc|c)ss$/] },
         loader: 'svg-inline-loader',
       },
     ],
@@ -56,8 +68,11 @@ const config = {
       constants: path.resolve(__dirname, 'src/constants'),
       icons: path.resolve(__dirname, 'src/icons'),
       hooks: path.resolve(__dirname, 'src/hooks'),
+      messages: path.resolve(__dirname, 'src/messages'),
+      types: path.resolve(__dirname, 'src/types'),
       utils: path.resolve(__dirname, 'src/utils'),
-      analyticsEvents: path.resolve(__dirname, 'src/analyticsEvents'),
+      events: path.resolve(__dirname, 'src/events'),
+      extensionProps: path.resolve(__dirname, 'src/types/extensionProps'),
     },
   },
   externals: ['redux'],
@@ -65,17 +80,23 @@ const config = {
     new ForkTsCheckerWebpackPlugin(),
     new ESLintWebpackPlugin({
       context: './src',
-      extensions: ['.scss', '.css', '.ts', '.tsx'],
+      extensions: ['.ts', '.tsx'],
+      configType: 'flat',
       threads: true,
+      cache: false,
     }),
     new ModuleFederationPlugin({
-      name: 'plugin_name',
+      name: 'mobitru_plugin',
       filename: `remoteEntity.js`,
       shared: {
         react: {
           import: 'react',
           shareKey: 'react',
           shareScope: 'default',
+          singleton: true,
+          requiredVersion: pjson.dependencies['react'],
+        },
+        'react/jsx-runtime': {
           singleton: true,
           requiredVersion: pjson.dependencies['react'],
         },
@@ -107,15 +128,32 @@ const config = {
           singleton: true,
           requiredVersion: pjson.dependencies['classnames'],
         },
+        'react-intl': {
+          singleton: true,
+          requiredVersion: pjson.dependencies['react-intl'],
+        },
+        '@reportportal/ui-kit': {
+          singleton: true,
+          requiredVersion: pjson.dependencies['@reportportal/ui-kit'],
+        },
       },
       exposes: {
-        './moduleName': './src/components/moduleName',
+        './mobitruFormFields': './src/components/mobitruFormFields/index.ts',
+        './mobitruSettings': './src/components/mobitruSettings/index.ts',
+        './cloudDevicesPage': './src/components/cloudDevicesPage/cloudDevicesPage.tsx',
+        './remoteDeviceTab': './src/components/remoteDeviceTab/index.ts',
       },
     }),
     new CopyPlugin({
       patterns: [
         { from: path.resolve(__dirname, './src/metadata.json') },
         { from: path.resolve(__dirname, './src/plugin-icon.svg') },
+        { from: path.resolve(__dirname, 'node_modules/plyr/dist/plyr.svg'), to: 'plyr.svg' },
+        {
+          from: path.resolve(__dirname, './src/locales'),
+          to: 'locale-[name][ext]',
+          globOptions: { ignore: ['**/en.json'] },
+        },
       ],
     }),
   ],
