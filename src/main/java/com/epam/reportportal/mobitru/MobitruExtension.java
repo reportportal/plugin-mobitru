@@ -33,7 +33,6 @@ import com.epam.reportportal.mobitru.client.RestClientBuilder;
 import com.epam.reportportal.mobitru.command.GetDevicesCommand;
 import com.epam.reportportal.mobitru.command.LoadExternalAttachmentCommand;
 import com.epam.reportportal.mobitru.command.TestConnectionCommand;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,7 +60,6 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
 
   private final Supplier<RestClientBuilder> restClientSupplier;
   private final Supplier<MobitruRecordingClient> recordingClientSupplier;
-  private final Supplier<ObjectMapper> objectMapperSupplier;
 
   @Autowired
   private BasicTextEncryptor basicEncryptor;
@@ -87,14 +85,10 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
   @Autowired
   private ProjectUserRepository projectUserRepository;
 
-  @Autowired
-  private ObjectMapper objectMapper;
-
   public MobitruExtension() {
     restClientSupplier = new MemoizingSupplier<>(() -> new RestClientBuilder(basicEncryptor));
     recordingClientSupplier = new MemoizingSupplier<>(
         () -> new MobitruRecordingClient(restClientSupplier.get()));
-    objectMapperSupplier = new MemoizingSupplier<>(() -> objectMapper);
   }
 
   @Override
@@ -106,11 +100,14 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
     return params;
   }
 
+  // TODO: remove both overrides once service-api drops the deprecated abstract methods
+  @Deprecated
   @Override
   public CommonPluginCommand<?> getCommonCommand(String commandName) {
     return null;
   }
 
+  @Deprecated
   @Override
   public PluginCommand<?> getIntegrationCommand(String commandName) {
     return null;
@@ -131,7 +128,7 @@ public class MobitruExtension implements ReportPortalExtensionPoint {
         .put(LoadExternalAttachmentCommand.COMMAND_NAME,
             new LoadExternalAttachmentCommand(recordingClientSupplier.get(), logRepository,
                 launchRepository, attachmentBinaryDataService, projectRepository,
-                organizationUserRepository, organizationRepository, projectUserRepository, objectMapperSupplier.get()))
+                organizationUserRepository, organizationRepository, projectUserRepository))
         .build();
   }
 }

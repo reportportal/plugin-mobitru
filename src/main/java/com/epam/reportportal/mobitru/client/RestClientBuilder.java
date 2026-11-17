@@ -21,13 +21,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import lombok.Getter;
 import org.jasypt.util.text.BasicTextEncryptor;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 @Getter
 public class RestClientBuilder {
 
-  private final RestTemplate restTemplate = new RestTemplateBuilder().build();
+  private final RestClient restClient = RestClient.create();
   private final BasicTextEncryptor textEncryptor;
 
   public RestClientBuilder(BasicTextEncryptor textEncryptor) {
