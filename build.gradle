@@ -22,6 +22,9 @@ def scriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-scripts/
 apply from: scriptsUrl + '/release-fat.gradle'
 apply from: scriptsUrl + '/signing.gradle'
 
+tasks.named('jar') {
+    enabled = true
+}
 
 java {
     sourceCompatibility = JavaVersion.VERSION_25
@@ -84,6 +87,10 @@ assemble.dependsOn shadowJar
 
 generatePomFileForShadowPublication { pom.packaging = "jar" }
 
+publishing.publications.named('shadow') {
+    artifact(tasks.named('jar'))
+}
+
 jar {
     from('ui/build') {
         into('/resources')
@@ -108,6 +115,7 @@ jar {
 
 shadowJar {
     dependsOn npm_run_build
+    archiveClassifier.set('all')
     from('ui/build') {
         into('/resources')
     }
