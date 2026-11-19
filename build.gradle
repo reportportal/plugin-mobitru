@@ -88,9 +88,9 @@ tasks.register('generateMarketplaceManifest') {
     def outputDir = layout.buildDirectory.dir('generated/marketplace')
     def manifest = [
             id           : pluginId.toString().trim(),
-            name         : 'Mobitru',
+            name         : pluginName.toString().trim(),
             version      : project.version.toString(),
-            description  : 'Watch videos of mobile test executions from Mobitru right in ReportPortal.',
+            description  : project.description.toString().trim(),
             author       : [name: 'EPAM ReportPortal', email: 'support@reportportal.io'],
             license      : 'Apache-2.0',
             category     : 'other',
